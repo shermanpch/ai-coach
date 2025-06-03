@@ -5,7 +5,10 @@ data/sample_external/
 data/sample_internal/
 data/external/
 data/internal/
+data/cleaned/
 ai-coach/
+sample_external_desc.md
+sample_internal_desc.md
 
 # EDA files
 eda/reports_internal/**/*.html
