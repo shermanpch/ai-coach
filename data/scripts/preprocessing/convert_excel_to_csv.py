@@ -458,7 +458,7 @@ def main():
     logger.info(f"Overall processing time: {overall_time:.2f} seconds")
 
     if total_files > 0:
-        logger.info(f"Average time per file: {overall_time/total_files:.2f} seconds")
+        logger.info(f"Average time per file: {overall_time / total_files:.2f} seconds")
 
     # Detailed results for each directory
     for data_type, stats in all_stats.items():

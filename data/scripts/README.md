@@ -33,7 +33,7 @@ python data/scripts/scraper/download_georgia_education_data.py --categories "ACT
 # Sample external data
 python data/scripts/sampler/create_sample_data.py --external
 
-# Sample internal data  
+# Sample internal data
 python data/scripts/sampler/create_sample_data.py --internal
 ```
 
@@ -64,4 +64,4 @@ pip install -r data/scripts/sampler/requirements.txt
 pip install -r data/scripts/preprocessing/requirements.txt
 ```
 
-See the README.md files in each folder for detailed documentation. 
+See the README.md files in each folder for detailed documentation.

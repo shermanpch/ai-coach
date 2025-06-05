@@ -46,7 +46,7 @@ python data/scripts/sampler/create_sample_data.py --help
 1. **File Discovery**: Finds all CSV files in the specified directory
 2. **Size Analysis**: Analyzes file sizes and estimates which files need sampling
 3. **Parallel Processing**: Processes multiple files simultaneously using all available CPU cores minus one
-4. **Smart Sampling**: 
+4. **Smart Sampling**:
    - If file has ≤500 rows: copies as-is
    - If file has >500 rows: samples 500 rows (or fewer if 500 rows would exceed 500MB)
 5. **Output**: Saves files with `sample_` prefix in the appropriate output directory
@@ -56,7 +56,7 @@ python data/scripts/sampler/create_sample_data.py --help
 ```
 data/
 ├── internal/                 # Original internal data
-├── external/                 # Original external data  
+├── external/                 # Original external data
 ├── sample_internal/          # Sampled internal data
 │   ├── sample_file1.csv
 │   ├── sample_file2.csv
@@ -98,4 +98,4 @@ python data/scripts/sampler/create_sample_data.py --internal
 
 # Sample all external data
 python data/scripts/sampler/create_sample_data.py --external
-``` 
+```

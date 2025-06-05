@@ -276,7 +276,7 @@ def unnest(
     for key in all_keys:
         column_name = f"{prefix}{key}" if prefix else key
         result_df[column_name] = result_df[nested_column_name].apply(
-            lambda x: x.get(key) if isinstance(x, NestedData) else None
+            lambda x, k=key: x.get(k) if isinstance(x, NestedData) else None
         )
 
     # Drop the nested column if requested
@@ -310,7 +310,7 @@ def get_feature_functions_from_module(module: Any) -> List[Any]:
     feature_functions = []
 
     # Iterate through all members of the module
-    for name, member in inspect.getmembers(module):
+    for _name, member in inspect.getmembers(module):
         if (
             inspect.isfunction(member)
             and member.__module__ == module.__name__

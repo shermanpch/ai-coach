@@ -135,7 +135,7 @@ For large downloads, consider downloading in smaller batches:
 # First batch - Assessment data
 python data/scripts/scraper/download_georgia_education_data.py --categories "ACT Scores,SAT Scores (Recent),Advanced Placement (AP) Scores"
 
-# Second batch - Enrollment data  
+# Second batch - Enrollment data
 python data/scripts/scraper/download_georgia_education_data.py --categories "Enrollment by Grade Level,Enrollment by Subgroup Programs"
 ```
 
@@ -166,4 +166,4 @@ python data/scripts/scraper/download_georgia_education_data.py --help
 - Large datasets may take significant time to download
 - The script automatically creates the necessary directory structure
 - Failed downloads are logged and can be retried by running the script again
-- Retired assessment categories are automatically excluded from the main data categories 
+- Retired assessment categories are automatically excluded from the main data categories

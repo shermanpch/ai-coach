@@ -1,5 +1,5 @@
 import statistics
-from typing import List, Sequence
+from typing import Sequence
 
 from ..feasy.decorator import single
 

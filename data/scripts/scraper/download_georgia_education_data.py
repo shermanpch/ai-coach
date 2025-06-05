@@ -587,7 +587,7 @@ def main():
         )
 
         # Summary
-        logger.info(f"\nDownload Summary:")
+        logger.info("\nDownload Summary:")
         logger.info(f"Successful downloads: {successful_downloads}")
         logger.info(f"Failed downloads: {failed_downloads}")
         logger.info(f"Skipped files (already exist): {skipped_files}")
@@ -596,7 +596,7 @@ def main():
         )
 
         if failed_downloads > 0:
-            logger.warning(f"Some downloads failed. Check the log for details.")
+            logger.warning("Some downloads failed. Check the log for details.")
         else:
             logger.info("All downloads completed successfully!")
 

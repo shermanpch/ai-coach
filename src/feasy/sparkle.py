@@ -37,7 +37,7 @@ Examples:
 
 from itertools import chain, starmap
 from operator import attrgetter
-from typing import Any, Callable, Iterable, List, Optional, Tuple, Union
+from typing import Any, Callable, Iterable, List, Tuple, Union
 
 import pandas as pd
 

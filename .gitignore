@@ -22,8 +22,6 @@ sample_internal_desc.md
 eda/reports_internal/**/*.html
 eda/reports_external/**/*.html
 
-# Temporary files
-lint.py
 
 # =============================================================================
 # LOGS AND DEBUGGING
@@ -360,4 +358,4 @@ Thumbs.db
 *.sqlite3
 
 # Compiled binaries
-*.com 
+*.com

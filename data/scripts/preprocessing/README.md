@@ -126,4 +126,4 @@ This will process files in both `data/external/` and `data/internal/` directorie
 - Existing CSV files are overwritten if the script is run again
 - ZIP files are extracted to subdirectories named after the ZIP file
 - Invalid characters in sheet names are replaced with underscores
-- The script skips files that are not Excel or ZIP files 
+- The script skips files that are not Excel or ZIP files

@@ -123,7 +123,7 @@ def process_csv_file(args_tuple):
         try:
             # Try default encoding first (usually UTF-8)
             df = pd.read_csv(csv_file_path)
-        except UnicodeDecodeError as e:
+        except UnicodeDecodeError:
             logger.warning(
                 f"UTF-8 encoding failed for {relative_path}, trying latin-1 encoding..."
             )
@@ -135,7 +135,7 @@ def process_csv_file(args_tuple):
             except Exception as e2:
                 raise Exception(
                     f"Failed to read with both UTF-8 and latin-1 encodings: {str(e2)}"
-                )
+                ) from e2
 
         original_rows = len(df)
         logger.info(
@@ -350,7 +350,7 @@ def main():
     logger.info(f"Skipped (already exists): {skipped}")
     logger.info(f"Failed: {failed}")
     logger.info(f"Total processing time: {total_time:.2f} seconds")
-    logger.info(f"Average time per file: {total_time/len(csv_files):.2f} seconds")
+    logger.info(f"Average time per file: {total_time / len(csv_files):.2f} seconds")
 
     # Calculate estimated final size
     if output_folder_path.exists():
