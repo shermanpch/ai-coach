@@ -5,7 +5,7 @@ from ..feasy.decorator import single
 
 
 # --------------------------------------------------------------------------- #
-# Small numeric utilities                                                      #
+# Small numeric utilities                                                     #
 # --------------------------------------------------------------------------- #
 def _mean(nums: Sequence[float]) -> float:
     """Graceful mean that returns 0.0 on an empty sequence."""
@@ -34,7 +34,7 @@ def _ols_slope(y: Sequence[float]) -> float:
 
 
 # --------------------------------------------------------------------------- #
-# Subject‐keyword definitions                                                   #
+# Subject‐keyword definitions                                                 #
 # --------------------------------------------------------------------------- #
 # Index Math‐related subjects in Milestone:
 # (catches 'Algebra I', 'Algebra: Concepts and Connections', 'Coordinate Algebra')
@@ -91,7 +91,7 @@ def _subject_metric(
 
 
 # --------------------------------------------------------------------------- #
-# Basic snapshot‐level features                                                #
+# Basic snapshot‐level features                                               #
 # --------------------------------------------------------------------------- #
 
 
@@ -226,7 +226,7 @@ def get_lexile_mean_math(row) -> float:
 
 
 # --------------------------------------------------------------------------- #
-# ELA‐specific performance metrics                                             #
+# ELA‐specific performance metrics                                            #
 # --------------------------------------------------------------------------- #
 
 
@@ -291,7 +291,7 @@ def get_lexile_mean_ela(row) -> float:
 
 
 # --------------------------------------------------------------------------- #
-# Time‐aware growth and trajectory features                                    #
+# Time‐aware growth and trajectory features                                   #
 # --------------------------------------------------------------------------- #
 
 
