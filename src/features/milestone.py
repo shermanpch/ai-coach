@@ -86,7 +86,8 @@ def _subject_metric(
     Return only those elements of metric_list whose SubjectDesc matches
     any keyword in subject_keywords.
     """
-    idx = _mask_by_subject(row.milestone.SubjectDesc or [], subject_keywords)
+    subject_desc = getattr(row.milestone, "SubjectDesc", None) or []
+    idx = _mask_by_subject(subject_desc, subject_keywords)
     return _values_by_mask(metric_list or [], idx)
 
 
@@ -98,32 +99,32 @@ def _subject_metric(
 @single("num_subjects_tested", int)
 def get_num_subjects_tested(row) -> int:
     """Number of different subjects taken in this snapshot."""
-    return len(row.milestone.SubjectDesc or [])
+    subjects = getattr(row.milestone, "SubjectDesc", None) or []
+    return len(subjects)
 
 
 @single("mean_scale_score_all", float)
 def get_mean_scale_score_all(row) -> float:
     """Mean of all ScaleScore values across all subjects (ignores None)."""
-    vals = [s for s in (row.milestone.ScaleScore or []) if isinstance(s, (int, float))]
-    return _mean(vals)
+    vals = getattr(row.milestone, "ScaleScore", None) or []
+    numeric_vals = [s for s in vals if isinstance(s, (int, float))]
+    return _mean(numeric_vals)
 
 
 @single("std_scale_score_all", float)
 def get_std_scale_score_all(row) -> float:
     """Standard deviation of ScaleScore across all subjects (ignores None)."""
-    vals = [s for s in (row.milestone.ScaleScore or []) if isinstance(s, (int, float))]
-    return statistics.pstdev(vals) if len(vals) > 1 else 0.0
+    vals = getattr(row.milestone, "ScaleScore", None) or []
+    numeric_vals = [s for s in vals if isinstance(s, (int, float))]
+    return statistics.pstdev(numeric_vals) if len(numeric_vals) > 1 else 0.0
 
 
 @single("mean_achievement_level_all", float)
 def get_mean_achievement_level_all(row) -> float:
     """Mean of AchievementLevel across all subjects (ignores None)."""
-    vals = [
-        lvl
-        for lvl in (row.milestone.AchievementLevel or [])
-        if isinstance(lvl, (int, float))
-    ]
-    return _mean(vals)
+    vals = getattr(row.milestone, "AchievementLevel", None) or []
+    numeric_vals = [lvl for lvl in vals if isinstance(lvl, (int, float))]
+    return _mean(numeric_vals)
 
 
 @single("pct_proficient_all", float)
@@ -132,24 +133,20 @@ def get_pct_proficient_all(row) -> float:
     Fraction of subjects where AchievementLevel ≥ 3 (assuming 3+ is 'proficient').
     Returns 0.0 if no subjects.
     """
-    levels = [
-        lvl
-        for lvl in (row.milestone.AchievementLevel or [])
-        if isinstance(lvl, (int, float))
-    ]
-    total = len(levels)
+    vals = getattr(row.milestone, "AchievementLevel", None) or []
+    numeric_vals = [lvl for lvl in vals if isinstance(lvl, (int, float))]
+    total = len(numeric_vals)
     if total == 0:
         return 0.0
-    return _pct(sum(1 for lvl in levels if lvl >= 3), total)
+    return _pct(sum(1 for lvl in numeric_vals if lvl >= 3), total)
 
 
 @single("mean_lexile_score_all", float)
 def get_mean_lexile_score_all(row) -> float:
     """Mean LexileScore across all subjects (ignores None/nan)."""
-    vals = [
-        lx for lx in (row.milestone.LexileScore or []) if isinstance(lx, (int, float))
-    ]
-    return _mean(vals)
+    vals = getattr(row.milestone, "LexileScore", None) or []
+    numeric_vals = [lx for lx in vals if isinstance(lx, (int, float))]
+    return _mean(numeric_vals)
 
 
 @single("num_unique_test_dates", int)
@@ -157,7 +154,8 @@ def get_num_unique_test_dates(row) -> int:
     """
     Number of distinct TestingDateId values in this snapshot (how many test‐days).
     """
-    return len(set(row.milestone.TestingDateId or []))
+    vals = getattr(row.milestone, "TestingDateId", None) or []
+    return len(set(vals))
 
 
 # --------------------------------------------------------------------------- #
@@ -168,9 +166,10 @@ def get_num_unique_test_dates(row) -> int:
 @single("scale_score_mean_math", float)
 def get_scale_score_mean_math(row) -> float:
     """Mean ScaleScore for Math‐tagged subjects in this snapshot."""
+    scale_scores = getattr(row.milestone, "ScaleScore", None) or []
     vals = [
         v
-        for v in _subject_metric(row, MATH_KEYWORDS, row.milestone.ScaleScore)
+        for v in _subject_metric(row, MATH_KEYWORDS, scale_scores)
         if isinstance(v, (int, float))
     ]
     return _mean(vals)
@@ -179,9 +178,10 @@ def get_scale_score_mean_math(row) -> float:
 @single("scale_score_std_math", float)
 def get_scale_score_std_math(row) -> float:
     """Standard deviation of ScaleScore for Math‐tagged subjects."""
+    scale_scores = getattr(row.milestone, "ScaleScore", None) or []
     vals = [
         v
-        for v in _subject_metric(row, MATH_KEYWORDS, row.milestone.ScaleScore)
+        for v in _subject_metric(row, MATH_KEYWORDS, scale_scores)
         if isinstance(v, (int, float))
     ]
     return statistics.pstdev(vals) if len(vals) > 1 else 0.0
@@ -190,9 +190,10 @@ def get_scale_score_std_math(row) -> float:
 @single("achievement_level_mean_math", float)
 def get_achievement_level_mean_math(row) -> float:
     """Mean AchievementLevel for Math‐tagged subjects."""
+    achievement_levels = getattr(row.milestone, "AchievementLevel", None) or []
     vals = [
         v
-        for v in _subject_metric(row, MATH_KEYWORDS, row.milestone.AchievementLevel)
+        for v in _subject_metric(row, MATH_KEYWORDS, achievement_levels)
         if isinstance(v, (int, float))
     ]
     return _mean(vals)
@@ -203,9 +204,10 @@ def get_pct_proficient_math(row) -> float:
     """
     Fraction of Math‐tagged subjects with AchievementLevel ≥ 3.
     """
+    achievement_levels = getattr(row.milestone, "AchievementLevel", None) or []
     vals = [
         v
-        for v in _subject_metric(row, MATH_KEYWORDS, row.milestone.AchievementLevel)
+        for v in _subject_metric(row, MATH_KEYWORDS, achievement_levels)
         if isinstance(v, (int, float))
     ]
     total = len(vals)
@@ -217,9 +219,10 @@ def get_pct_proficient_math(row) -> float:
 @single("lexile_mean_math", float)
 def get_lexile_mean_math(row) -> float:
     """Mean LexileScore for Math‐tagged subjects (often NaN)."""
+    lexile_scores = getattr(row.milestone, "LexileScore", None) or []
     vals = [
         v
-        for v in _subject_metric(row, MATH_KEYWORDS, row.milestone.LexileScore)
+        for v in _subject_metric(row, MATH_KEYWORDS, lexile_scores)
         if isinstance(v, (int, float))
     ]
     return _mean(vals)
@@ -233,9 +236,10 @@ def get_lexile_mean_math(row) -> float:
 @single("scale_score_mean_ela", float)
 def get_scale_score_mean_ela(row) -> float:
     """Mean ScaleScore for ELA‐tagged subjects in this snapshot."""
+    scale_scores = getattr(row.milestone, "ScaleScore", None) or []
     vals = [
         v
-        for v in _subject_metric(row, ELA_KEYWORDS, row.milestone.ScaleScore)
+        for v in _subject_metric(row, ELA_KEYWORDS, scale_scores)
         if isinstance(v, (int, float))
     ]
     return _mean(vals)
@@ -244,9 +248,10 @@ def get_scale_score_mean_ela(row) -> float:
 @single("scale_score_std_ela", float)
 def get_scale_score_std_ela(row) -> float:
     """Standard deviation of ScaleScore for ELA‐tagged subjects."""
+    scale_scores = getattr(row.milestone, "ScaleScore", None) or []
     vals = [
         v
-        for v in _subject_metric(row, ELA_KEYWORDS, row.milestone.ScaleScore)
+        for v in _subject_metric(row, ELA_KEYWORDS, scale_scores)
         if isinstance(v, (int, float))
     ]
     return statistics.pstdev(vals) if len(vals) > 1 else 0.0
@@ -255,9 +260,10 @@ def get_scale_score_std_ela(row) -> float:
 @single("achievement_level_mean_ela", float)
 def get_achievement_level_mean_ela(row) -> float:
     """Mean AchievementLevel for ELA‐tagged subjects."""
+    achievement_levels = getattr(row.milestone, "AchievementLevel", None) or []
     vals = [
         v
-        for v in _subject_metric(row, ELA_KEYWORDS, row.milestone.AchievementLevel)
+        for v in _subject_metric(row, ELA_KEYWORDS, achievement_levels)
         if isinstance(v, (int, float))
     ]
     return _mean(vals)
@@ -268,9 +274,10 @@ def get_pct_proficient_ela(row) -> float:
     """
     Fraction of ELA‐tagged subjects with AchievementLevel ≥ 3.
     """
+    achievement_levels = getattr(row.milestone, "AchievementLevel", None) or []
     vals = [
         v
-        for v in _subject_metric(row, ELA_KEYWORDS, row.milestone.AchievementLevel)
+        for v in _subject_metric(row, ELA_KEYWORDS, achievement_levels)
         if isinstance(v, (int, float))
     ]
     total = len(vals)
@@ -282,9 +289,10 @@ def get_pct_proficient_ela(row) -> float:
 @single("lexile_mean_ela", float)
 def get_lexile_mean_ela(row) -> float:
     """Mean LexileScore for ELA‐tagged subjects."""
+    lexile_scores = getattr(row.milestone, "LexileScore", None) or []
     vals = [
         v
-        for v in _subject_metric(row, ELA_KEYWORDS, row.milestone.LexileScore)
+        for v in _subject_metric(row, ELA_KEYWORDS, lexile_scores)
         if isinstance(v, (int, float))
     ]
     return _mean(vals)
@@ -301,12 +309,13 @@ def get_scale_score_slope_all(row) -> float:
     OLS slope of all ScaleScore values vs. TestingDateId (across all subjects).
     Sort pairs by date, take the ordered list of scale scores, and compute slope.
     """
+    testing_dates = getattr(row.milestone, "TestingDateId", None) or []
+    scale_scores = getattr(row.milestone, "ScaleScore", None) or []
+
     pairs = sorted(
         [
             (d, s)
-            for d, s in zip(
-                row.milestone.TestingDateId or [], row.milestone.ScaleScore or []
-            )
+            for d, s in zip(testing_dates, scale_scores)
             if isinstance(d, (int, float)) and isinstance(s, (int, float))
         ],
         key=lambda x: x[0],
@@ -323,12 +332,13 @@ def get_scale_score_improvement_all(row) -> float:
     Change in scale score from first to last test date across all subjects:
     (last_score − first_score), ignoring subject labels.
     """
+    testing_dates = getattr(row.milestone, "TestingDateId", None) or []
+    scale_scores = getattr(row.milestone, "ScaleScore", None) or []
+
     pairs = sorted(
         [
             (d, s)
-            for d, s in zip(
-                row.milestone.TestingDateId or [], row.milestone.ScaleScore or []
-            )
+            for d, s in zip(testing_dates, scale_scores)
             if isinstance(d, (int, float)) and isinstance(s, (int, float))
         ],
         key=lambda x: x[0],
@@ -341,7 +351,8 @@ def get_scale_score_improvement_all(row) -> float:
 @single("num_test_days", int)
 def get_num_test_days(row) -> int:
     """Number of distinct TestingDateId values in this snapshot."""
-    return len(set(row.milestone.TestingDateId or []))
+    testing_dates = getattr(row.milestone, "TestingDateId", None) or []
+    return len(set(testing_dates))
 
 
 # -------------------- Math‐specific growth trajectories --------------------- #
@@ -350,14 +361,20 @@ def get_scale_score_slope_math(row) -> float:
     """
     OLS slope of Math‐tagged ScaleScore vs. TestingDateId (within this snapshot).
     """
-    idx = _mask_by_subject(row.milestone.SubjectDesc or [], MATH_KEYWORDS)
+    subject_desc = getattr(row.milestone, "SubjectDesc", None) or []
+    testing_dates = getattr(row.milestone, "TestingDateId", None) or []
+    scale_scores = getattr(row.milestone, "ScaleScore", None) or []
+
+    idx = _mask_by_subject(subject_desc, MATH_KEYWORDS)
     pairs = sorted(
         [
-            (row.milestone.TestingDateId[i], row.milestone.ScaleScore[i])
+            (testing_dates[i], scale_scores[i])
             for i in idx
             if (
-                isinstance(row.milestone.TestingDateId[i], (int, float))
-                and isinstance(row.milestone.ScaleScore[i], (int, float))
+                i < len(testing_dates)
+                and i < len(scale_scores)
+                and isinstance(testing_dates[i], (int, float))
+                and isinstance(scale_scores[i], (int, float))
             )
         ],
         key=lambda x: x[0],
@@ -373,14 +390,20 @@ def get_scale_score_improvement_math(row) -> float:
     """
     Change in Math scale score from first to last test date (within this snapshot).
     """
-    idx = _mask_by_subject(row.milestone.SubjectDesc or [], MATH_KEYWORDS)
+    subject_desc = getattr(row.milestone, "SubjectDesc", None) or []
+    testing_dates = getattr(row.milestone, "TestingDateId", None) or []
+    scale_scores = getattr(row.milestone, "ScaleScore", None) or []
+
+    idx = _mask_by_subject(subject_desc, MATH_KEYWORDS)
     pairs = sorted(
         [
-            (row.milestone.TestingDateId[i], row.milestone.ScaleScore[i])
+            (testing_dates[i], scale_scores[i])
             for i in idx
             if (
-                isinstance(row.milestone.TestingDateId[i], (int, float))
-                and isinstance(row.milestone.ScaleScore[i], (int, float))
+                i < len(testing_dates)
+                and i < len(scale_scores)
+                and isinstance(testing_dates[i], (int, float))
+                and isinstance(scale_scores[i], (int, float))
             )
         ],
         key=lambda x: x[0],
@@ -396,14 +419,20 @@ def get_scale_score_slope_ela(row) -> float:
     """
     OLS slope of ELA‐tagged ScaleScore vs. TestingDateId (within this snapshot).
     """
-    idx = _mask_by_subject(row.milestone.SubjectDesc or [], ELA_KEYWORDS)
+    subject_desc = getattr(row.milestone, "SubjectDesc", None) or []
+    testing_dates = getattr(row.milestone, "TestingDateId", None) or []
+    scale_scores = getattr(row.milestone, "ScaleScore", None) or []
+
+    idx = _mask_by_subject(subject_desc, ELA_KEYWORDS)
     pairs = sorted(
         [
-            (row.milestone.TestingDateId[i], row.milestone.ScaleScore[i])
+            (testing_dates[i], scale_scores[i])
             for i in idx
             if (
-                isinstance(row.milestone.TestingDateId[i], (int, float))
-                and isinstance(row.milestone.ScaleScore[i], (int, float))
+                i < len(testing_dates)
+                and i < len(scale_scores)
+                and isinstance(testing_dates[i], (int, float))
+                and isinstance(scale_scores[i], (int, float))
             )
         ],
         key=lambda x: x[0],
@@ -419,14 +448,20 @@ def get_scale_score_improvement_ela(row) -> float:
     """
     Change in ELA scale score from first to last test date (within this snapshot).
     """
-    idx = _mask_by_subject(row.milestone.SubjectDesc or [], ELA_KEYWORDS)
+    subject_desc = getattr(row.milestone, "SubjectDesc", None) or []
+    testing_dates = getattr(row.milestone, "TestingDateId", None) or []
+    scale_scores = getattr(row.milestone, "ScaleScore", None) or []
+
+    idx = _mask_by_subject(subject_desc, ELA_KEYWORDS)
     pairs = sorted(
         [
-            (row.milestone.TestingDateId[i], row.milestone.ScaleScore[i])
+            (testing_dates[i], scale_scores[i])
             for i in idx
             if (
-                isinstance(row.milestone.TestingDateId[i], (int, float))
-                and isinstance(row.milestone.ScaleScore[i], (int, float))
+                i < len(testing_dates)
+                and i < len(scale_scores)
+                and isinstance(testing_dates[i], (int, float))
+                and isinstance(scale_scores[i], (int, float))
             )
         ],
         key=lambda x: x[0],
