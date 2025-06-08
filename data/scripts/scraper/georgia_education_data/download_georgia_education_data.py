@@ -11,26 +11,26 @@ Features parallel downloading with anti-detection measures including:
 - Respectful rate limiting
 
 Usage:
-    python data/scripts/scraper/download_georgia_education_data.py [--categories CATEGORY1,CATEGORY2] [--years YEAR1,YEAR2] [--workers N] [--no-delays] [--dry-run]
+    python data/scripts/scraper/georgia_education_data/download_georgia_education_data.py [--categories CATEGORY1,CATEGORY2] [--years YEAR1,YEAR2] [--workers N] [--no-delays] [--dry-run]
 
 Examples:
     # Download all data with anti-detection measures (recommended)
-    python data/scripts/scraper/download_georgia_education_data.py
+    python data/scripts/scraper/georgia_education_data/download_georgia_education_data.py
 
     # Download only ACT scores and AP scores
-    python data/scripts/scraper/download_georgia_education_data.py --categories "ACT Scores,Advanced Placement (AP) Scores"
+    python data/scripts/scraper/georgia_education_data/download_georgia_education_data.py --categories "ACT Scores,Advanced Placement (AP) Scores"
 
     # Download only recent years (2020-2024)
-    python data/scripts/scraper/download_georgia_education_data.py --years 2020-21,2021-22,2022-23,2023-24
+    python data/scripts/scraper/georgia_education_data/download_georgia_education_data.py --years 2020-21,2021-22,2022-23,2023-24
 
     # Download with 2 parallel workers (safer for avoiding detection)
-    python data/scripts/scraper/download_georgia_education_data.py --workers 2
+    python data/scripts/scraper/georgia_education_data/download_georgia_education_data.py --workers 2
 
     # Fast download without delays (higher risk of being blocked)
-    python data/scripts/scraper/download_georgia_education_data.py --no-delays --workers 1
+    python data/scripts/scraper/georgia_education_data/download_georgia_education_data.py --no-delays --workers 1
 
     # Dry run to see what would be downloaded
-    python data/scripts/scraper/download_georgia_education_data.py --dry-run
+    python data/scripts/scraper/georgia_education_data/download_georgia_education_data.py --dry-run
 """
 
 import argparse
@@ -38,6 +38,7 @@ import logging
 import os
 import random
 import re
+import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -47,8 +48,27 @@ from urllib.parse import urlparse
 import requests
 from bs4 import BeautifulSoup
 
-# Get the absolute path to the project root (3 levels up from this script)
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+
+def get_git_root():
+    """Get the root directory of the git repository"""
+    try:
+        git_root_bytes = subprocess.check_output(
+            ["git", "rev-parse", "--show-toplevel"], stderr=subprocess.DEVNULL
+        )
+        git_root_str = git_root_bytes.strip().decode("utf-8")
+        return Path(git_root_str)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+
+
+PROJECT_ROOT = get_git_root()
+if PROJECT_ROOT is None:
+    print(
+        "CRITICAL: Error: Not in a git repository or git not found. Cannot determine project root.",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
 LOGS_DIR = PROJECT_ROOT / "logs"
 DATA_DIR = PROJECT_ROOT / "data"
 

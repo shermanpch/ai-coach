@@ -1,169 +1,288 @@
-# Georgia Education Data Scraper
+# Data Scrapers
 
-This folder contains scripts for downloading Georgia education data from the [GOSA (Governor's Office of Student Achievement) website](https://gosa.georgia.gov/dashboards-data-report-card/downloadable-data).
+This directory contains comprehensive scripts for downloading and scraping various education-related data sources with automated discovery, retry logic, and organized storage.
 
-## Scripts
+## 🔧 Scrapers Overview
 
-### 1. download_georgia_education_data.py
+### 📊 [georgia_education_data/](georgia_education_data/)
+**Georgia Education Data Collection**
+Scripts for downloading comprehensive Georgia education data from the GOSA (Governor's Office of Student Achievement) website.
 
-Downloads Georgia education data and organizes it by category and year.
+**Main Scripts:**
+- `download_georgia_education_data.py` - Downloads Georgia education data organized by category and year
+- `list_categories.py` - Lists all available data categories from the GOSA website
 
-#### Features
+**Key Features:**
+- 🔍 **Automatic Discovery**: Dynamically discovers all available data categories and years
+- 📁 **Organized Storage**: Files stored by category and year with timestamped filenames
+- 🎯 **Selective Downloads**: Filter downloads by specific categories or years
+- 🔄 **Retry Logic**: Exponential backoff for handling network issues
+- 🧪 **Dry Run Mode**: Preview downloads without actually downloading files
+- 📝 **Comprehensive Logging**: Detailed logging with progress tracking
+- ⚡ **Resume Capability**: Skip existing files to resume interrupted downloads
 
-- **Automatic Data Discovery**: Parses the GOSA website to find all available data download links (CSV, XLS, XLSX, ZIP)
-- **Organized Storage**: Downloads files organized by data category and year in the `data/external/` folder
-- **Selective Downloads**: Filter by specific data categories or years
-- **Retry Logic**: Automatic retry with exponential backoff for failed downloads
-- **Dry Run Mode**: Preview what would be downloaded without actually downloading
-- **Comprehensive Logging**: Detailed logs of all download activities
-- **Skip Existing Files**: Automatically skips files that have already been downloaded
-- **Excludes Retired Data**: Automatically excludes retired assessment categories
+### 🏫 [peterson_search_data/](peterson_search_data/)
+**University Data Scraping**
+Scripts for scraping comprehensive university data from Peterson's college search website.
 
-### 2. list_categories.py
+**Main Scripts:**
+- `get_peterson_urls.py` - Searches Peterson's website for universities and extracts profile URLs
+- `models.py` - Pydantic models defining the data structure for university information
 
-Lists all available data categories from the GOSA website.
+**Key Features:**
+- 🔍 **Automated Search**: Searches Peterson's website for universities by name
+- 📊 **Structured Data**: Comprehensive university information extraction including:
+  - 📍 Location and contact information
+  - 🎓 Academic programs and majors
+  - 📈 Admission statistics and requirements
+  - 💰 Tuition, fees, and financial aid information
+  - 🏃 Athletics and campus life details
+  - 👨‍🏫 Faculty information and statistics
+- ⚡ **Multiprocessing**: Efficient parallel scraping for faster data collection
+- 🔒 **Thread-Safe Storage**: File locking mechanisms for concurrent operations
+- 🌐 **JavaScript Support**: Uses Selenium for JavaScript-heavy pages
 
-## Installation
+## 🚀 Installation & Setup
 
 Install the required dependencies:
 ```bash
 pip install -r data/scripts/scraper/requirements.txt
 ```
 
-## Usage
+**Key Dependencies:**
+- `requests` - HTTP requests and web scraping
+- `beautifulsoup4` - HTML parsing
+- `selenium` - JavaScript-heavy page handling
+- `pydantic` - Data validation and modeling
+- `pandas` - Data manipulation and CSV handling
 
-### List Available Categories
-First, see what data categories are available:
+## 📖 Quick Start Guide
+
+### Georgia Education Data
+
+**1. Explore Available Data:**
 ```bash
-python data/scripts/scraper/list_categories.py
+python data/scripts/scraper/georgia_education_data/list_categories.py
 ```
 
-### Download Data
-
-**Download all available data:**
+**2. Download Specific Categories:**
 ```bash
-python data/scripts/scraper/download_georgia_education_data.py
+# Download ACT scores for 2023-24
+python data/scripts/scraper/georgia_education_data/download_georgia_education_data.py --categories "ACT Scores" --years "2023-24"
+
+# Download multiple categories
+python data/scripts/scraper/georgia_education_data/download_georgia_education_data.py --categories "ACT Scores,SAT Scores" --years "2023-24,2022-23"
 ```
 
-**Download specific categories:**
+**3. Download All Available Data:**
 ```bash
-python data/scripts/scraper/download_georgia_education_data.py --categories "ACT Scores,Advanced Placement (AP) Scores"
+python data/scripts/scraper/georgia_education_data/download_georgia_education_data.py
 ```
 
-**Download specific years:**
+**4. Preview Downloads (Dry Run):**
 ```bash
-python data/scripts/scraper/download_georgia_education_data.py --years "2023-24,2022-23,2021-22"
+python data/scripts/scraper/georgia_education_data/download_georgia_education_data.py --dry-run
 ```
 
-**Combine filters:**
+### Peterson University Data
+
+**1. Prepare University List:**
+Ensure you have a CSV file with university names in the expected format.
+
+**2. Search and Extract URLs:**
 ```bash
-python data/scripts/scraper/download_georgia_education_data.py --categories "ACT Scores" --years "2023-24,2022-23"
+python data/scripts/scraper/peterson_search_data/get_peterson_urls.py
 ```
 
-**Dry run to see what would be downloaded:**
-```bash
-python data/scripts/scraper/download_georgia_education_data.py --dry-run
-```
+**Process:**
+1. Loads university names from CSV file
+2. Searches Peterson's website for each university
+3. Extracts all university profile URLs
+4. Saves comprehensive results to `data/cleaned/peterson_university_urls.json`
 
-**Custom output directory:**
-```bash
-python data/scripts/scraper/download_georgia_education_data.py --output-dir "custom/path"
-```
+## 📁 Data Organization & Output
 
-## Data Organization
-
-Downloaded files are organized as follows:
+### Georgia Education Data Structure
 ```
 data/external/
 ├── act_scores/
 │   ├── 2023-24/
 │   │   └── ACT_2023-24_Highest_2025-01-14_16_21_13.csv
 │   ├── 2022-23/
-│   │   └── ACT_2022-23_Highest_2025-01-15_09_21_13.csv
+│   │   └── ACT_2022-23_Highest_2025-01-14_16_22_45.csv
 │   └── ...
 ├── advanced_placement_ap_scores/
 │   ├── 2023-24/
 │   │   └── AP_2023-24_2025-01-15_15_03_20.csv
 │   └── ...
-├── student_mobility_rates_by_district/
-│   ├── 2023-24/
-│   │   └── 2024_District_Mobility_for_Display.xls
-│   └── ...
+├── georgia_milestones_assessments/
+├── enrollment_data/
+├── graduation_rates/
+├── financial_data/
 └── ...
 ```
 
-## Available Data Categories
+### Peterson University Data Structure
+```
+data/cleaned/
+└── peterson_university_urls.json  # Comprehensive university search results and URLs
+```
 
-The script automatically discovers all available categories from the GOSA website, including:
+## 📊 Available Data Categories (Georgia)
 
+The Georgia scraper automatically discovers all available categories from the GOSA website. Common categories include:
+
+**Academic Performance:**
 - ACT Scores, SAT Scores, AP Scores
 - Georgia Milestones Assessments (EOG, EOC)
-- Enrollment, Attendance, Graduation Rates
-- Financial data (Revenues, Expenditures, Salaries)
-- Personnel and Educator Qualifications
-- English Learners, Dropout Rates
-- Student Mobility Rates
-- And many more...
+- NAEP (National Assessment of Educational Progress)
 
-Run `python data/scripts/scraper/list_categories.py` to see the complete current list.
+**Student Demographics & Enrollment:**
+- Enrollment by Grade, Race, Gender
+- English Learners, Students with Disabilities
+- Free and Reduced Lunch Eligibility
 
-## Logging
+**School Performance Metrics:**
+- Attendance Rates, Graduation Rates
+- Dropout Rates, Student Mobility Rates
+- College and Career Readiness
 
-The download script creates detailed logs in `georgia_data_download.log` including:
-- Download progress and status
-- File sizes and locations
-- Error messages and retry attempts
-- Summary statistics
+**Financial & Personnel Data:**
+- School Revenues and Expenditures
+- Personnel Counts and Salaries
+- Educator Qualifications and Experience
 
-## Tips and Best Practices
+**Infrastructure & Resources:**
+- Facilities and Technology
+- Class Sizes and Student-Teacher Ratios
 
-### 1. Start with a Dry Run
-Always use `--dry-run` first to see what will be downloaded:
+## 🔧 Advanced Usage & Configuration
+
+### Georgia Education Data Scraper
+
+**Command Line Options:**
 ```bash
-python data/scripts/scraper/download_georgia_education_data.py --categories "ACT Scores" --dry-run
+python download_georgia_education_data.py [OPTIONS]
+
+Options:
+  --categories TEXT    Comma-separated list of categories to download
+  --years TEXT        Comma-separated list of years to download
+  --dry-run          Preview downloads without downloading
+  --help             Show help message
 ```
 
-### 2. Use Exact Category Names
-Category names must match exactly. Use the list script to see exact names:
-```bash
-python data/scripts/scraper/list_categories.py
-```
+**Configuration Tips:**
+- Use exact category names from `list_categories.py`
+- Year format: "2023-24", "2022-23", etc.
+- Large datasets may take significant time; consider downloading in batches
+- Use dry-run mode to estimate download size and time
 
-### 3. Download in Batches
-For large downloads, consider downloading in smaller batches:
-```bash
-# First batch - Assessment data
-python data/scripts/scraper/download_georgia_education_data.py --categories "ACT Scores,SAT Scores (Recent),Advanced Placement (AP) Scores"
+### Peterson University Scraper
 
-# Second batch - Enrollment data
-python data/scripts/scraper/download_georgia_education_data.py --categories "Enrollment by Grade Level,Enrollment by Subgroup Programs"
-```
+**Input Requirements:**
+- CSV file with university names
+- Proper column naming for university identification
+- Internet connection for web scraping
 
-### 4. Resume Failed Downloads
-If some downloads fail, just run the script again - it will skip existing files:
-```bash
-python data/scripts/scraper/download_georgia_education_data.py --categories "ACT Scores"
-# Will skip already downloaded files
-```
+**Performance Optimization:**
+- Uses multiprocessing for parallel URL extraction
+- Implements appropriate delays to respect website terms
+- Includes retry logic for failed requests
 
-## Troubleshooting
+## 📝 Logging & Monitoring
 
-### Common Issues
+### Georgia Education Data
+- **Log File**: `logs/georgia_data_download.log`
+- **Content**: Download progress, errors, file information, timing statistics
+- **Levels**: INFO, WARNING, ERROR with detailed timestamps
 
-1. **Category not found**: Use exact category names from `list_categories.py`
-2. **Network errors**: The script has retry logic, but check your internet connection
-3. **Permission errors**: Ensure you have write permissions to the output directory
-4. **Large downloads**: Some files are very large; be patient or download in smaller batches
+### Peterson University Data
+- **Log File**: `logs/peterson_scraper.log`
+- **Content**: Search progress, URL extraction, errors, processing statistics
+- **Monitoring**: Real-time progress tracking and error reporting
+
+## 🛠️ Troubleshooting Guide
+
+### Common Issues & Solutions
+
+**Network-Related Issues:**
+1. **Connection timeouts**: Scripts include retry logic with exponential backoff
+2. **Rate limiting**: Appropriate delays built into scrapers
+3. **DNS issues**: Check internet connection and DNS settings
+
+**File & Storage Issues:**
+1. **Disk space**: Large datasets require significant storage space
+2. **File permissions**: Ensure write permissions to output directories
+3. **Existing files**: Scripts automatically skip existing files
+
+**Data-Specific Issues:**
+1. **Category names**: Use exact names from `list_categories.py`
+2. **Year formats**: Follow "YYYY-YY" format (e.g., "2023-24")
+3. **Large files**: Some datasets are very large; be patient or use selective downloads
+
+### Performance Optimization
+
+**For Large Downloads:**
+1. **Batch processing**: Download categories in smaller batches
+2. **Selective downloads**: Focus on specific years or categories
+3. **Resume capability**: Re-run scripts to continue interrupted downloads
+4. **Storage planning**: Ensure adequate disk space before starting
+
+**For Web Scraping:**
+1. **Stable internet**: Ensure reliable internet connection
+2. **Browser compatibility**: Keep browser drivers updated for Selenium
+3. **Memory management**: Monitor memory usage for large scraping jobs
+
+## 🔍 Data Quality & Validation
+
+### Georgia Education Data
+- **Automatic validation**: File size and format checks
+- **Timestamp tracking**: All downloads timestamped for version control
+- **Duplicate prevention**: Automatic skipping of existing files
+- **Error logging**: Comprehensive error tracking and reporting
+
+### Peterson University Data
+- **Structured validation**: Pydantic models ensure data consistency
+- **URL validation**: Automatic validation of extracted URLs
+- **Data completeness**: Tracking of successful vs. failed extractions
+- **Backup mechanisms**: Automatic backup during processing
+
+## 📚 Additional Resources
 
 ### Getting Help
 ```bash
-python data/scripts/scraper/download_georgia_education_data.py --help
+# Georgia scraper help
+python data/scripts/scraper/georgia_education_data/download_georgia_education_data.py --help
+
+# List available categories
+python data/scripts/scraper/georgia_education_data/list_categories.py
+
+# Check Peterson scraper logs
+tail -f logs/peterson_scraper.log
+
+# Check Georgia scraper logs
+tail -f logs/georgia_data_download.log
 ```
 
-## Notes
+### Best Practices
+1. **Start small**: Begin with specific categories or years
+2. **Monitor progress**: Check logs regularly for large downloads
+3. **Plan storage**: Estimate storage requirements before downloading
+4. **Backup data**: Consider backing up downloaded data
+5. **Respect terms**: Both scrapers respect website terms of service
 
-- The download script respects the GOSA website's structure and includes appropriate delays between requests
-- Large datasets may take significant time to download
-- The script automatically creates the necessary directory structure
-- Failed downloads are logged and can be retried by running the script again
-- Retired assessment categories are automatically excluded from the main data categories
+## ⚠️ Important Notes
+
+- **Terms of Service**: Both scrapers include appropriate delays and respect website terms
+- **Data Size**: Some datasets are very large (>1GB); plan accordingly
+- **Processing Time**: Large downloads may take hours; use screen/tmux for long sessions
+- **Directory Structure**: Scripts automatically create necessary directory structures
+- **Error Recovery**: Failed operations are logged and can be retried
+- **Browser Requirements**: Peterson scraper requires Chrome/Chromium for Selenium
+
+## 🔄 Updates & Maintenance
+
+- **Regular Updates**: GOSA website structure may change; scripts may need updates
+- **Dependency Management**: Keep dependencies updated for security and compatibility
+- **Log Rotation**: Consider rotating log files for long-term usage
+- **Data Archival**: Plan for long-term storage and archival of downloaded data

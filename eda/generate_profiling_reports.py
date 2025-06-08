@@ -11,6 +11,7 @@ import argparse
 import logging
 import multiprocessing as mp
 import os
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -18,8 +19,27 @@ from pathlib import Path
 import pandas as pd
 from ydata_profiling import ProfileReport
 
-# Get the absolute path to the project root (1 level up from this script)
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+def get_git_root():
+    """Get the root directory of the git repository"""
+    try:
+        git_root_bytes = subprocess.check_output(
+            ["git", "rev-parse", "--show-toplevel"], stderr=subprocess.DEVNULL
+        )
+        git_root_str = git_root_bytes.strip().decode("utf-8")
+        return Path(git_root_str)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+
+
+PROJECT_ROOT = get_git_root()
+if PROJECT_ROOT is None:
+    print(
+        "CRITICAL: Error: Not in a git repository or git not found. Cannot determine project root.",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
 LOGS_DIR = PROJECT_ROOT / "logs"
 DATA_DIR = PROJECT_ROOT / "data"
 EDA_DIR = PROJECT_ROOT / "eda"
@@ -103,7 +123,7 @@ def process_csv_file(args_tuple):
             df,
             title=f"Data Profile Report - {relative_path}",
             explorative=True,
-            minimal=False,  # Set to True if you want faster but less detailed reports
+            minimal=False,  # Set to True for faster but less detailed reports
         )
 
         # Ensure output directory exists

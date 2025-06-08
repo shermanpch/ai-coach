@@ -12,15 +12,34 @@ import argparse
 import logging
 import multiprocessing as mp
 import os
+import subprocess
 import sys
 import time
 from pathlib import Path
 
 import pandas as pd
 
-# Get the absolute path to the project root (3 levels up from this script)
-# Script is at: data/scripts/sampler/create_sample_data.py
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+
+def get_git_root():
+    """Get the root directory of the git repository"""
+    try:
+        git_root_bytes = subprocess.check_output(
+            ["git", "rev-parse", "--show-toplevel"], stderr=subprocess.DEVNULL
+        )
+        git_root_str = git_root_bytes.strip().decode("utf-8")
+        return Path(git_root_str)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+
+
+PROJECT_ROOT = get_git_root()
+if PROJECT_ROOT is None:
+    print(
+        "CRITICAL: Error: Not in a git repository or git not found. Cannot determine project root.",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
 LOGS_DIR = PROJECT_ROOT / "logs"
 DATA_DIR = PROJECT_ROOT / "data"
 

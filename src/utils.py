@@ -15,7 +15,7 @@ class NestedData:
     """
     A class that provides dot notation access to nested data structures.
 
-    This class allows you to access nested data using dot notation (e.g., obj.key)
+    This class allowsnested data to be accessed using dot notation (e.g., obj.key)
     instead of dictionary-style access (e.g., obj['key']).
 
     Attributes:
