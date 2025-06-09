@@ -7,9 +7,9 @@ This directory contains organized scripts for comprehensive data collection, pro
 ### 📥 [scraper/](scraper/)
 **Data Collection & Web Scraping**
 - **Georgia Education Data**: Download education data from GOSA (Governor's Office of Student Achievement)
-- **Peterson University Data**: Scrape university information from Peterson's college search website
-- Automated data discovery, retry logic, and organized storage
-- Support for selective downloads and comprehensive logging
+- **Peterson University Data**: Complete pipeline for scraping and processing university information from Peterson's website
+- Automated data discovery, batch processing, validation, and error recovery
+- Support for selective downloads, URL validation, and comprehensive logging
 
 ### 🎯 [sampler/](sampler/)
 **Data Sampling & Testing**
@@ -44,9 +44,22 @@ python data/scripts/scraper/georgia_education_data/download_georgia_education_da
 python data/scripts/scraper/georgia_education_data/download_georgia_education_data.py
 ```
 
-**Scrape Peterson university data:**
+**Process Peterson university data (complete pipeline):**
 ```bash
-python data/scripts/scraper/peterson_search_data/get_peterson_urls.py
+# 1. Extract URLs
+python data/scripts/scraper/peterson_search_data/001_get_peterson_urls.py
+
+# 2. Validate URLs
+python data/scripts/scraper/peterson_search_data/002_validate_urls.py
+
+# 3. Batch scrape data
+python data/scripts/scraper/peterson_search_data/003_get_peterson_data.py --num-batches 10
+
+# 4. Clean and combine data
+python data/scripts/scraper/peterson_search_data/004_clean_peterson_data.py
+
+# 5. Re-scrape failed URLs (if needed)
+python data/scripts/scraper/peterson_search_data/005_rescrape_failed_urls.py
 ```
 
 ### 2. Data Preprocessing
@@ -107,11 +120,16 @@ data/
 │   ├── act_scores/
 │   │   └── 2023-24/
 │   │       └── ACT_2023-24_*.csv
+│   ├── peterson_data/
+│   │   └── *.json                    # Raw scraped university data
 │   └── ...
 ├── sample_external/   # Sampled external data (≤500 rows)
 ├── sample_internal/   # Sampled internal data (≤500 rows)
 └── cleaned/
-    └── peterson_university_urls.json
+    ├── peterson_university_urls.json           # University search results
+    ├── peterson_url_validation_results.json    # URL validation results
+    ├── peterson_data.json                      # Final cleaned university dataset
+    └── failed_urls_rescrape_job.json          # Re-scraping job info
 ```
 
 ## 🔧 Advanced Usage
@@ -123,10 +141,11 @@ data/
 - **Comprehensive logging**: Track all download activities
 
 ### Peterson University Scraper
-- **Automated search**: Search Peterson's website for universities
-- **Structured data extraction**: Extract detailed university profiles
-- **Multiprocessing**: Efficient parallel scraping
-- **Thread-safe storage**: File locking for concurrent operations
+- **Complete pipeline**: URL discovery, validation, batch scraping, and data cleaning
+- **Batch processing**: Efficient parallel scraping using Firecrawl API
+- **URL validation**: Smart matching against existing university datasets
+- **Error recovery**: Automatic re-scraping of failed URLs
+- **Structured data**: Comprehensive university information extraction
 
 ### Data Sampling
 - **Smart size detection**: Automatically determine if sampling is needed

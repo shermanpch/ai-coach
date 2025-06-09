@@ -22,15 +22,21 @@ Scripts for downloading comprehensive Georgia education data from the GOSA (Gove
 - ⚡ **Resume Capability**: Skip existing files to resume interrupted downloads
 
 ### 🏫 [peterson_search_data/](peterson_search_data/)
-**University Data Scraping**
-Scripts for scraping comprehensive university data from Peterson's college search website.
+**University Data Scraping & Processing**
+Complete pipeline for scraping and processing comprehensive university data from Peterson's college search website.
 
 **Main Scripts:**
-- `get_peterson_urls.py` - Searches Peterson's website for universities and extracts profile URLs
+- `001_get_peterson_urls.py` - Searches Peterson's website for universities and extracts profile URLs
+- `002_validate_urls.py` - Validates and matches Peterson URLs against university datasets
+- `003_get_peterson_data.py` - Batch scrapes university data using Firecrawl API
+- `004_clean_peterson_data.py` - Extracts and combines JSON data from scraped files
+- `005_rescrape_failed_urls.py` - Re-scrapes URLs that failed initial processing
 - `models.py` - Pydantic models defining the data structure for university information
 
 **Key Features:**
-- 🔍 **Automated Search**: Searches Peterson's website for universities by name
+- 🔍 **URL Discovery**: Automated search and extraction of university profile URLs
+- ✅ **URL Validation**: Smart matching and validation against existing university datasets
+- 🌐 **Batch Scraping**: Efficient batch processing using Firecrawl API with retry logic
 - 📊 **Structured Data**: Comprehensive university information extraction including:
   - 📍 Location and contact information
   - 🎓 Academic programs and majors
@@ -38,9 +44,9 @@ Scripts for scraping comprehensive university data from Peterson's college searc
   - 💰 Tuition, fees, and financial aid information
   - 🏃 Athletics and campus life details
   - 👨‍🏫 Faculty information and statistics
-- ⚡ **Multiprocessing**: Efficient parallel scraping for faster data collection
-- 🔒 **Thread-Safe Storage**: File locking mechanisms for concurrent operations
-- 🌐 **JavaScript Support**: Uses Selenium for JavaScript-heavy pages
+- 🔄 **Error Recovery**: Automatic identification and re-scraping of failed URLs
+- 🧹 **Data Cleaning**: Automated extraction and combination of university data
+- 📝 **Comprehensive Logging**: Detailed progress tracking and error reporting
 
 ## 🚀 Installation & Setup
 
@@ -86,19 +92,39 @@ python data/scripts/scraper/georgia_education_data/download_georgia_education_da
 
 ### Peterson University Data
 
-**1. Prepare University List:**
-Ensure you have a CSV file with university names in the expected format.
+**Complete Pipeline Process:**
 
-**2. Search and Extract URLs:**
+**1. Extract University URLs:**
 ```bash
-python data/scripts/scraper/peterson_search_data/get_peterson_urls.py
+python data/scripts/scraper/peterson_search_data/001_get_peterson_urls.py
 ```
 
-**Process:**
-1. Loads university names from CSV file
-2. Searches Peterson's website for each university
-3. Extracts all university profile URLs
-4. Saves comprehensive results to `data/cleaned/peterson_university_urls.json`
+**2. Validate URLs Against Dataset:**
+```bash
+python data/scripts/scraper/peterson_search_data/002_validate_urls.py
+```
+
+**3. Batch Scrape University Data:**
+```bash
+python data/scripts/scraper/peterson_search_data/003_get_peterson_data.py --num-batches 10
+```
+
+**4. Clean and Combine Data:**
+```bash
+python data/scripts/scraper/peterson_search_data/004_clean_peterson_data.py
+```
+
+**5. Re-scrape Failed URLs (if needed):**
+```bash
+python data/scripts/scraper/peterson_search_data/005_rescrape_failed_urls.py
+```
+
+**Pipeline Overview:**
+1. **URL Discovery**: Searches Peterson's website for university URLs
+2. **Validation**: Matches URLs against existing university datasets
+3. **Batch Scraping**: Uses Firecrawl API to scrape university data in batches
+4. **Data Cleaning**: Extracts JSON data and combines into single dataset
+5. **Error Recovery**: Identifies and re-scrapes any failed URLs
 
 ## 📁 Data Organization & Output
 
@@ -124,8 +150,16 @@ data/external/
 
 ### Peterson University Data Structure
 ```
-data/cleaned/
-└── peterson_university_urls.json  # Comprehensive university search results and URLs
+data/
+├── cleaned/
+│   ├── peterson_university_urls.json           # University search results and URLs
+│   ├── peterson_url_validation_results.json    # URL validation and matching results
+│   ├── peterson_urls_with_batch_ids_*.csv      # URLs assigned to scraping batches
+│   ├── peterson_data.json                      # Final cleaned university dataset
+│   └── failed_urls_rescrape_job.json          # Re-scraping job information
+└── external/
+    └── peterson_data/
+        └── *.json                              # Raw scraped university data files
 ```
 
 ## 📊 Available Data Categories (Georgia)
@@ -179,15 +213,17 @@ Options:
 
 ### Peterson University Scraper
 
-**Input Requirements:**
-- CSV file with university names
-- Proper column naming for university identification
+**Pipeline Requirements:**
+- University dataset (CSV/JSON) for URL validation
+- Firecrawl API key for batch scraping
 - Internet connection for web scraping
 
-**Performance Optimization:**
-- Uses multiprocessing for parallel URL extraction
-- Implements appropriate delays to respect website terms
-- Includes retry logic for failed requests
+**Performance Features:**
+- **Batch Processing**: Scrapes multiple URLs simultaneously using Firecrawl API
+- **Smart Validation**: Matches URLs against existing datasets before scraping
+- **Error Recovery**: Automatic identification and re-processing of failed URLs
+- **Efficient Storage**: Organized file structure with progress tracking
+- **Resume Capability**: Can resume interrupted scraping jobs
 
 ## 📝 Logging & Monitoring
 
@@ -197,9 +233,12 @@ Options:
 - **Levels**: INFO, WARNING, ERROR with detailed timestamps
 
 ### Peterson University Data
-- **Log File**: `logs/peterson_scraper.log`
-- **Content**: Search progress, URL extraction, errors, processing statistics
-- **Monitoring**: Real-time progress tracking and error reporting
+- **Log Files**:
+  - `logs/peterson_batch_scraper.log` - Batch scraping progress and job submissions
+  - `logs/peterson_data_cleaner.log` - Data cleaning and extraction progress
+  - `logs/rescrape_failed_urls.log` - Failed URL re-scraping activities
+- **Content**: Pipeline progress, URL validation, batch job tracking, data extraction, error recovery
+- **Monitoring**: Real-time progress tracking for each pipeline stage
 
 ## 🛠️ Troubleshooting Guide
 
@@ -242,10 +281,11 @@ Options:
 - **Error logging**: Comprehensive error tracking and reporting
 
 ### Peterson University Data
-- **Structured validation**: Pydantic models ensure data consistency
-- **URL validation**: Automatic validation of extracted URLs
-- **Data completeness**: Tracking of successful vs. failed extractions
-- **Backup mechanisms**: Automatic backup during processing
+- **Pipeline validation**: Multi-stage validation throughout the process
+- **URL matching**: Smart matching against existing university datasets
+- **Data consistency**: Pydantic models ensure structured data extraction
+- **Error tracking**: Comprehensive tracking of failed URLs and re-scraping
+- **Data completeness**: Final dataset combines all successfully scraped universities
 
 ## 📚 Additional Resources
 
@@ -257,8 +297,10 @@ python data/scripts/scraper/georgia_education_data/download_georgia_education_da
 # List available categories
 python data/scripts/scraper/georgia_education_data/list_categories.py
 
-# Check Peterson scraper logs
-tail -f logs/peterson_scraper.log
+# Check Peterson pipeline logs
+tail -f logs/peterson_batch_scraper.log
+tail -f logs/peterson_data_cleaner.log
+tail -f logs/rescrape_failed_urls.log
 
 # Check Georgia scraper logs
 tail -f logs/georgia_data_download.log
