@@ -325,7 +325,7 @@ def create_student_features(
     df: pd.DataFrame,
     student_col: str,
     year_col: str,
-    target_cols: Union[List[str], str],
+    target_cols: Optional[Union[List[str], str]] = None,
     numeric_dtypes: Optional[List[str]] = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
@@ -343,7 +343,7 @@ def create_student_features(
         student_col: Name of the column containing student identifiers.
         year_col: Name of the column containing year/time information.
         target_cols: Column name(s) to exclude from feature creation (typically target variables).
-                    Can be a single string or list of strings.
+                    Can be a single string, list of strings, or None. If None, no columns are dropped.
         numeric_dtypes: List of numeric dtypes to include in delta and slope calculations.
                        Defaults to ["float64", "int64"].
 
@@ -374,6 +374,10 @@ def create_student_features(
         >>> student_df, features = create_student_features(
         ...     df, 'student_id', 'year', 'target'
         ... )
+        >>> # Or without dropping any target columns:
+        >>> student_df, features = create_student_features(
+        ...     df, 'student_id', 'year'
+        ... )
         >>> features.columns
         Index(['gpa_latest', 'sat_score_latest', 'major_latest', 'gpa_delta',
                'sat_score_delta', 'gpa_slope', 'sat_score_slope', 'num_snapshots'],
@@ -392,16 +396,20 @@ def create_student_features(
     if year_col not in df.columns:
         raise ValueError(f"Year column '{year_col}' not found in DataFrame")
 
-    # Handle target_cols as string or list
-    if isinstance(target_cols, str):
-        target_cols = [target_cols]
+    # Handle target_cols as string, list, or None
+    if target_cols is None:
+        columns_to_drop = []
+    elif isinstance(target_cols, str):
+        columns_to_drop = [target_cols]
+    else:
+        columns_to_drop = target_cols
 
     # Set default numeric dtypes
     if numeric_dtypes is None:
         numeric_dtypes = ["float64", "int64"]
 
     # Drop target columns and sort by student and year
-    X_data = df.drop(columns=target_cols, errors="ignore").sort_values(
+    X_data = df.drop(columns=columns_to_drop, errors="ignore").sort_values(
         [student_col, year_col]
     )
 
