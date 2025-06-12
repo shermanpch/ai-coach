@@ -10,6 +10,66 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# US State abbreviation to full name mapping
+STATE_MAPPING = {
+    "AL": "Alabama",
+    "AK": "Alaska",
+    "AZ": "Arizona",
+    "AR": "Arkansas",
+    "CA": "California",
+    "CO": "Colorado",
+    "CT": "Connecticut",
+    "DE": "Delaware",
+    "FL": "Florida",
+    "GA": "Georgia",
+    "HI": "Hawaii",
+    "ID": "Idaho",
+    "IL": "Illinois",
+    "IN": "Indiana",
+    "IA": "Iowa",
+    "KS": "Kansas",
+    "KY": "Kentucky",
+    "LA": "Louisiana",
+    "ME": "Maine",
+    "MD": "Maryland",
+    "MA": "Massachusetts",
+    "MI": "Michigan",
+    "MN": "Minnesota",
+    "MS": "Mississippi",
+    "MO": "Missouri",
+    "MT": "Montana",
+    "NE": "Nebraska",
+    "NV": "Nevada",
+    "NH": "New Hampshire",
+    "NJ": "New Jersey",
+    "NM": "New Mexico",
+    "NY": "New York",
+    "NC": "North Carolina",
+    "ND": "North Dakota",
+    "OH": "Ohio",
+    "OK": "Oklahoma",
+    "OR": "Oregon",
+    "PA": "Pennsylvania",
+    "RI": "Rhode Island",
+    "SC": "South Carolina",
+    "SD": "South Dakota",
+    "TN": "Tennessee",
+    "TX": "Texas",
+    "UT": "Utah",
+    "VT": "Vermont",
+    "VA": "Virginia",
+    "WA": "Washington",
+    "WV": "West Virginia",
+    "WI": "Wisconsin",
+    "WY": "Wyoming",
+    "DC": "District of Columbia",
+    "PR": "Puerto Rico",
+    "VI": "Virgin Islands",
+    "AS": "American Samoa",
+    "GU": "Guam",
+    "MP": "Northern Mariana Islands",
+}
+
 
 def get_git_root():
     """Get the root directory of the git repository"""
@@ -36,11 +96,12 @@ LOGS_DIR = PROJECT_ROOT / "logs"
 LOGS_DIR.mkdir(exist_ok=True)
 
 # Set up logging
+script_name = os.path.splitext(os.path.basename(__file__))[0]
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler(LOGS_DIR / "004_clean_peterson_data.log"),
+        logging.FileHandler(LOGS_DIR / f"{script_name}.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )
@@ -204,6 +265,7 @@ def process_peterson_data():
             # Apply comprehensive cleaning
             cleaned_data = clean_malformed_entries(extracted_json, university_name)
             cleaned_data = clean_requirements_section(cleaned_data)
+            cleaned_data = convert_state_abbreviation(cleaned_data)
 
             extracted_data.append(cleaned_data)
             successful_files += 1
@@ -240,6 +302,40 @@ def process_peterson_data():
     except Exception as e:
         logger.error(f"Failed to save output file: {e}")
         sys.exit(1)
+
+
+def convert_state_abbreviation(university_data: Dict) -> Dict:
+    """
+    Convert state abbreviation to full state name in location_contact.
+
+    Args:
+        university_data: Dictionary containing university data
+
+    Returns:
+        University data with full state name
+    """
+    university_name = university_data.get("university_name", "Unknown University")
+
+    # Navigate to the location_contact section
+    location_contact = university_data.get("location_contact", {})
+    address = location_contact.get("address", {})
+
+    if "state" in address:
+        state_abbrev = address["state"]
+
+        # Convert abbreviation to full name if mapping exists
+        if state_abbrev in STATE_MAPPING:
+            full_state_name = STATE_MAPPING[state_abbrev]
+            address["state"] = full_state_name
+            logger.info(
+                f"Converted state for {university_name}: {state_abbrev} -> {full_state_name}"
+            )
+        else:
+            logger.warning(
+                f"No mapping found for state abbreviation '{state_abbrev}' in {university_name}"
+            )
+
+    return university_data
 
 
 def main():

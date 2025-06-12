@@ -49,17 +49,26 @@ python data/scripts/scraper/georgia_education_data/download_georgia_education_da
 # 1. Extract URLs
 python data/scripts/scraper/peterson_search_data/001_get_peterson_urls.py
 
-# 2. Validate URLs
-python data/scripts/scraper/peterson_search_data/002_validate_urls.py
+# 2. Get correct URLs
+python data/scripts/scraper/peterson_search_data/002_get_correct_peterson_url.py
 
 # 3. Batch scrape data
 python data/scripts/scraper/peterson_search_data/003_get_peterson_data.py --num-batches 10
 
-# 4. Clean and combine data
-python data/scripts/scraper/peterson_search_data/004_clean_peterson_data.py
+# 4. Re-scrape failed URLs (if needed)
+python data/scripts/scraper/peterson_search_data/004_rescrape_failed_urls.py
 
-# 5. Re-scrape failed URLs (if needed)
-python data/scripts/scraper/peterson_search_data/005_rescrape_failed_urls.py
+# 5. Scrape course information
+python data/scripts/scraper/peterson_search_data/005_scrape_courses.py
+
+# 6. Combine course data
+python data/scripts/scraper/peterson_search_data/006_combine_peterson_courses.py
+
+# 7. Clean and combine data
+python data/scripts/scraper/peterson_search_data/007_clean_peterson_data.py
+
+# 8. Convert to documents
+python data/scripts/scraper/peterson_search_data/008_convert_to_documents.py
 ```
 
 ### 2. Data Preprocessing
@@ -125,11 +134,15 @@ data/
 │   └── ...
 ├── sample_external/   # Sampled external data (≤500 rows)
 ├── sample_internal/   # Sampled internal data (≤500 rows)
+├── chatbot/
+│   └── peterson_data/
+│       └── *.md                      # Converted markdown documents
 └── cleaned/
     ├── peterson_university_urls.json           # University search results
+    ├── peterson_university_urls_backup.json    # Backup of university URLs
     ├── peterson_url_validation_results.json    # URL validation results
-    ├── peterson_data.json                      # Final cleaned university dataset
-    └── failed_urls_rescrape_job.json          # Re-scraping job info
+    ├── peterson_url_validation_results_backup.json # Backup of validation results
+    └── peterson_data.json                      # Final cleaned university dataset
 ```
 
 ## 🔧 Advanced Usage

@@ -47,11 +47,12 @@ DATA_DIR = PROJECT_ROOT / "data"
 LOGS_DIR.mkdir(exist_ok=True)
 
 # Set up logging with absolute path
+script_name = os.path.splitext(os.path.basename(__file__))[0]
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler(LOGS_DIR / "create_sample_data.log"),
+        logging.FileHandler(LOGS_DIR / f"{script_name}.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )

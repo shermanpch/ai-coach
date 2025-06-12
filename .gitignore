@@ -6,17 +6,11 @@
 logs/
 etc/
 models/
-data/sample_external/
-data/sample_internal/
-data/external/
-data/internal/
-data/cleaned/
+# Ignore everything in data/ except scripts/
+data/*
+!data/scripts/
 ai-coach/
-.chainlit/
-chatbot/
 catboost_info/
-sample_external_desc.md
-sample_internal_desc.md
 
 # EDA files
 eda/reports_internal/**/*.html

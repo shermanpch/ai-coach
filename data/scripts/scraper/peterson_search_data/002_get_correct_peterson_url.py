@@ -40,11 +40,12 @@ LOGS_DIR = PROJECT_ROOT / "logs"
 LOGS_DIR.mkdir(exist_ok=True)
 
 # Set up logging
+script_name = os.path.splitext(os.path.basename(__file__))[0]
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler(LOGS_DIR / "002_get_correct_peterson_url.log"),
+        logging.FileHandler(LOGS_DIR / f"{script_name}.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )

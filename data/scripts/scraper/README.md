@@ -27,10 +27,13 @@ Complete pipeline for scraping and processing comprehensive university data from
 
 **Main Scripts:**
 - `001_get_peterson_urls.py` - Searches Peterson's website for universities and extracts profile URLs
-- `002_validate_urls.py` - Validates and matches Peterson URLs against university datasets
+- `002_get_correct_peterson_url.py` - Validates and matches Peterson URLs against university datasets
 - `003_get_peterson_data.py` - Batch scrapes university data using Firecrawl API
-- `004_clean_peterson_data.py` - Extracts and combines JSON data from scraped files
-- `005_rescrape_failed_urls.py` - Re-scrapes URLs that failed initial processing
+- `004_rescrape_failed_urls.py` - Re-scrapes URLs that failed initial processing
+- `005_scrape_courses.py` - Scrapes course information for universities
+- `006_combine_peterson_courses.py` - Combines course data from multiple sources
+- `007_clean_peterson_data.py` - Extracts and combines JSON data from scraped files
+- `008_convert_to_documents.py` - Converts processed data to document format
 - `models.py` - Pydantic models defining the data structure for university information
 
 **Key Features:**
@@ -101,7 +104,7 @@ python data/scripts/scraper/peterson_search_data/001_get_peterson_urls.py
 
 **2. Validate URLs Against Dataset:**
 ```bash
-python data/scripts/scraper/peterson_search_data/002_validate_urls.py
+python data/scripts/scraper/peterson_search_data/002_get_correct_peterson_url.py
 ```
 
 **3. Batch Scrape University Data:**
@@ -109,22 +112,40 @@ python data/scripts/scraper/peterson_search_data/002_validate_urls.py
 python data/scripts/scraper/peterson_search_data/003_get_peterson_data.py --num-batches 10
 ```
 
-**4. Clean and Combine Data:**
+**4. Re-scrape Failed URLs (if needed):**
 ```bash
-python data/scripts/scraper/peterson_search_data/004_clean_peterson_data.py
+python data/scripts/scraper/peterson_search_data/004_rescrape_failed_urls.py
 ```
 
-**5. Re-scrape Failed URLs (if needed):**
+**5. Scrape Course Information:**
 ```bash
-python data/scripts/scraper/peterson_search_data/005_rescrape_failed_urls.py
+python data/scripts/scraper/peterson_search_data/005_scrape_courses.py
+```
+
+**6. Combine Course Data:**
+```bash
+python data/scripts/scraper/peterson_search_data/006_combine_peterson_courses.py
+```
+
+**7. Clean and Combine Data:**
+```bash
+python data/scripts/scraper/peterson_search_data/007_clean_peterson_data.py
+```
+
+**8. Convert to Documents:**
+```bash
+python data/scripts/scraper/peterson_search_data/008_convert_to_documents.py
 ```
 
 **Pipeline Overview:**
 1. **URL Discovery**: Searches Peterson's website for university URLs
-2. **Validation**: Matches URLs against existing university datasets
+2. **URL Correction**: Validates and gets correct URLs against existing university datasets
 3. **Batch Scraping**: Uses Firecrawl API to scrape university data in batches
-4. **Data Cleaning**: Extracts JSON data and combines into single dataset
-5. **Error Recovery**: Identifies and re-scrapes any failed URLs
+4. **Error Recovery**: Identifies and re-scrapes any failed URLs
+5. **Course Scraping**: Scrapes detailed course information for universities
+6. **Course Combination**: Combines course data from multiple sources
+7. **Data Cleaning**: Extracts JSON data and combines into single dataset
+8. **Document Conversion**: Converts processed data to document format
 
 ## 📁 Data Organization & Output
 
@@ -153,10 +174,13 @@ data/external/
 data/
 ├── cleaned/
 │   ├── peterson_university_urls.json           # University search results and URLs
+│   ├── peterson_university_urls_backup.json    # Backup of university URLs
 │   ├── peterson_url_validation_results.json    # URL validation and matching results
-│   ├── peterson_urls_with_batch_ids_*.csv      # URLs assigned to scraping batches
-│   ├── peterson_data.json                      # Final cleaned university dataset
-│   └── failed_urls_rescrape_job.json          # Re-scraping job information
+│   ├── peterson_url_validation_results_backup.json # Backup of validation results
+│   └── peterson_data.json                      # Final cleaned university dataset
+├── chatbot/
+│   └── peterson_data/
+│       └── *.md                                # Converted markdown documents
 └── external/
     └── peterson_data/
         └── *.json                              # Raw scraped university data files
