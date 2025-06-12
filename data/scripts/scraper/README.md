@@ -33,7 +33,6 @@ Complete pipeline for scraping and processing comprehensive university data from
 - `005_scrape_courses.py` - Scrapes course information for universities
 - `006_combine_peterson_courses.py` - Combines course data from multiple sources
 - `007_clean_peterson_data.py` - Extracts and combines JSON data from scraped files
-- `008_convert_to_documents.py` - Converts processed data to document format
 - `models.py` - Pydantic models defining the data structure for university information
 
 **Key Features:**
@@ -132,11 +131,6 @@ python data/scripts/scraper/peterson_search_data/006_combine_peterson_courses.py
 python data/scripts/scraper/peterson_search_data/007_clean_peterson_data.py
 ```
 
-**8. Convert to Documents:**
-```bash
-python data/scripts/scraper/peterson_search_data/008_convert_to_documents.py
-```
-
 **Pipeline Overview:**
 1. **URL Discovery**: Searches Peterson's website for university URLs
 2. **URL Correction**: Validates and gets correct URLs against existing university datasets
@@ -145,7 +139,6 @@ python data/scripts/scraper/peterson_search_data/008_convert_to_documents.py
 5. **Course Scraping**: Scrapes detailed course information for universities
 6. **Course Combination**: Combines course data from multiple sources
 7. **Data Cleaning**: Extracts JSON data and combines into single dataset
-8. **Document Conversion**: Converts processed data to document format
 
 ## 📁 Data Organization & Output
 
@@ -178,9 +171,7 @@ data/
 │   ├── peterson_url_validation_results.json    # URL validation and matching results
 │   ├── peterson_url_validation_results_backup.json # Backup of validation results
 │   └── peterson_data.json                      # Final cleaned university dataset
-├── chatbot/
-│   └── peterson_data/
-│       └── *.md                                # Converted markdown documents
+
 └── external/
     └── peterson_data/
         └── *.json                              # Raw scraped university data files

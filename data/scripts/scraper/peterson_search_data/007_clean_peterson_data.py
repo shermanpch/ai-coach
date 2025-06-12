@@ -171,7 +171,7 @@ def clean_requirements_section(university_data: Dict) -> Dict:
     Returns:
         Cleaned university data
     """
-    university_name = university_data.get("university_name", "Unknown University")
+    university_name = university_data.get("university_name", "N/A")
 
     # Navigate to the requirements section
     admissions = university_data.get("admissions", {})
@@ -314,7 +314,7 @@ def convert_state_abbreviation(university_data: Dict) -> Dict:
     Returns:
         University data with full state name
     """
-    university_name = university_data.get("university_name", "Unknown University")
+    university_name = university_data.get("university_name", "N/A")
 
     # Navigate to the location_contact section
     location_contact = university_data.get("location_contact", {})

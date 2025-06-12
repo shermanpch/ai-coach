@@ -66,9 +66,6 @@ python data/scripts/scraper/peterson_search_data/006_combine_peterson_courses.py
 
 # 7. Clean and combine data
 python data/scripts/scraper/peterson_search_data/007_clean_peterson_data.py
-
-# 8. Convert to documents
-python data/scripts/scraper/peterson_search_data/008_convert_to_documents.py
 ```
 
 ### 2. Data Preprocessing
@@ -134,9 +131,7 @@ data/
 │   └── ...
 ├── sample_external/   # Sampled external data (≤500 rows)
 ├── sample_internal/   # Sampled internal data (≤500 rows)
-├── chatbot/
-│   └── peterson_data/
-│       └── *.md                      # Converted markdown documents
+
 └── cleaned/
     ├── peterson_university_urls.json           # University search results
     ├── peterson_university_urls_backup.json    # Backup of university URLs

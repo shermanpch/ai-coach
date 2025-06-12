@@ -11,6 +11,7 @@ data/*
 !data/scripts/
 ai-coach/
 catboost_info/
+chroma-peterson/
 
 # EDA files
 eda/reports_internal/**/*.html
