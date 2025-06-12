@@ -51,7 +51,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler(LOGS_DIR / "peterson_scraper.log"),
+        logging.FileHandler(LOGS_DIR / "001_get_peterson_urls.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )

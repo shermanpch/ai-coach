@@ -51,7 +51,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler(LOGS_DIR / "sample_data_creation.log"),
+        logging.FileHandler(LOGS_DIR / "create_sample_data.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )

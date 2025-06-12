@@ -52,7 +52,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler(LOGS_DIR / "profiling_reports.log"),
+        logging.FileHandler(LOGS_DIR / "generate_profiling_reports.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )

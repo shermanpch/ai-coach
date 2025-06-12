@@ -4,7 +4,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict
+from typing import Any, Dict
 
 from dotenv import load_dotenv
 
@@ -40,7 +40,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler(LOGS_DIR / "peterson_data_cleaner.log"),
+        logging.FileHandler(LOGS_DIR / "004_clean_peterson_data.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )
@@ -48,6 +48,101 @@ logger = logging.getLogger(__name__)
 
 # Change to project root
 os.chdir(PROJECT_ROOT)
+
+
+def clean_malformed_entries(data: Any, university_name: str = "Unknown") -> Any:
+    """
+    Recursively clean malformed entries from the data structure.
+
+    Args:
+        data: The data structure to clean
+        university_name: Name of the university for logging purposes
+
+    Returns:
+        Cleaned data structure
+    """
+    if isinstance(data, dict):
+        cleaned_dict = {}
+        for key, value in data.items():
+            cleaned_dict[key] = clean_malformed_entries(value, university_name)
+        return cleaned_dict
+
+    elif isinstance(data, list):
+        cleaned_list = []
+        for item in data:
+            # Check for malformed string entries that look like broken JSON
+            if isinstance(item, str):
+                # Detect malformed patterns like "test_scores_accepted:[{"
+                if any(
+                    pattern in item
+                    for pattern in [
+                        "test_scores_accepted:[{",
+                        ":[{",
+                        ":]}",
+                        '":[{',
+                        '":]}',
+                    ]
+                ):
+                    logger.warning(
+                        f"Removing malformed string entry from {university_name}: {item}"
+                    )
+                    continue  # Skip this malformed entry
+                else:
+                    # Keep valid string entries
+                    cleaned_list.append(item)
+            else:
+                # Recursively clean non-string items
+                cleaned_list.append(clean_malformed_entries(item, university_name))
+        return cleaned_list
+
+    else:
+        # Return primitive types as-is
+        return data
+
+
+def clean_requirements_section(university_data: Dict) -> Dict:
+    """
+    Specifically clean the requirements section of malformed entries.
+
+    Args:
+        university_data: Dictionary containing university data
+
+    Returns:
+        Cleaned university data
+    """
+    university_name = university_data.get("university_name", "Unknown University")
+
+    # Navigate to the requirements section
+    admissions = university_data.get("admissions", {})
+    requirements = admissions.get("requirements", [])
+
+    if requirements:
+        original_length = len(requirements)
+        cleaned_requirements = []
+
+        for req in requirements:
+            # Keep only dictionary entries, remove malformed strings
+            if isinstance(req, dict):
+                # Also clean the dictionary recursively
+                cleaned_req = clean_malformed_entries(req, university_name)
+                cleaned_requirements.append(cleaned_req)
+            elif isinstance(req, str):
+                logger.warning(
+                    f"Removing malformed requirement string from {university_name}: {req}"
+                )
+            else:
+                logger.warning(
+                    f"Removing unexpected requirement type from {university_name}: {type(req)} - {req}"
+                )
+
+        admissions["requirements"] = cleaned_requirements
+
+        if len(cleaned_requirements) != original_length:
+            logger.info(
+                f"Cleaned requirements for {university_name}: {original_length} -> {len(cleaned_requirements)} entries"
+            )
+
+    return university_data
 
 
 def load_peterson_json_file(file_path: Path) -> Dict:
@@ -101,7 +196,16 @@ def process_peterson_data():
         extracted_json = load_peterson_json_file(json_file)
 
         if extracted_json is not None:
-            extracted_data.append(extracted_json)
+            # Clean the extracted data
+            university_name = extracted_json.get(
+                "university_name", f"Unknown from {json_file.name}"
+            )
+
+            # Apply comprehensive cleaning
+            cleaned_data = clean_malformed_entries(extracted_json, university_name)
+            cleaned_data = clean_requirements_section(cleaned_data)
+
+            extracted_data.append(cleaned_data)
             successful_files += 1
         else:
             failed_files += 1

@@ -15,8 +15,8 @@ class ContactInfo(BaseModel):
     phone: str = Field(..., description="Main phone number, e.g. '740-593-1000'")
     fax: Optional[str] = Field(None, description="Fax number, if present")
     email: Optional[str] = Field(None, description="Contact e-mail address, if present")
-    name: Optional[str] = Field(None, description="Contact person’s name, if present")
-    title: Optional[str] = Field(None, description="Contact person’s title, if present")
+    name: Optional[str] = Field(None, description="Contact person's name, if present")
+    title: Optional[str] = Field(None, description="Contact person's title, if present")
 
 
 class LocationContact(BaseModel):
@@ -32,7 +32,7 @@ class MajorProgram(BaseModel):
     )
     offers_bachelors: bool = Field(
         ...,
-        description="True if a Bachelor’s degree is offered",
+        description="True if a Bachelor's degree is offered",
     )
 
 
@@ -166,7 +166,7 @@ class TuitionAndFees(BaseModel):
     other_payment_considerations: Optional[List[OtherPaymentConsideration]] = Field(
         None,
         description=(
-            "The “Other Payment Considerations” table, if present; "
+            'The "Other Payment Considerations" table, if present; '
             "each row becomes one object"
         ),
     )
@@ -221,7 +221,7 @@ class SportOffering(BaseModel):
     sport: str = Field(..., description="Name of the sport, e.g. 'Basketball'")
     intramural: bool = Field(
         ...,
-        description="True if offered intramurally (✓), False otherwise",
+        description="True if offered intramurally, False otherwise",
     )
     intercollegiate: Optional[str] = Field(
         None,
@@ -270,7 +270,7 @@ class Housing(BaseModel):
     )
     percent_undergrads_in_college_housing: Optional[float] = Field(
         None,
-        description="Percentage of undergrad students living in college housing, as a number 0–100",
+        description="Percentage of undergrad students living in college housing, as a number 0-100",
     )
 
 

@@ -54,7 +54,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler(LOGS_DIR / "excel_to_csv_conversion.log"),
+        logging.FileHandler(LOGS_DIR / "convert_excel_to_csv.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )

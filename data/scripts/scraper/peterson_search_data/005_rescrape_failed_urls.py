@@ -43,7 +43,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler(LOGS_DIR / "rescrape_failed_urls.log"),
+        logging.FileHandler(LOGS_DIR / "005_rescrape_failed_urls.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )

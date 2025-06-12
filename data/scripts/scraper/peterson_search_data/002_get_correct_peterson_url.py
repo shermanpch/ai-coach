@@ -44,7 +44,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler(LOGS_DIR / "peterson_url_validator.log"),
+        logging.FileHandler(LOGS_DIR / "002_get_correct_peterson_url.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )
@@ -501,7 +501,7 @@ def process_university_urls(args):
     if overall_matches:
         best_match = overall_matches[0]
         logger.info(
-            f"✓ OVERALL MATCH FOUND: {university_name} -> {best_match['Scraped_Name']} in {best_match['Scraped_Location']}"
+            f"OVERALL MATCH FOUND: {university_name} -> {best_match['Scraped_Name']} in {best_match['Scraped_Location']}"
         )
     else:
         # If no overall matches, look for name matches
@@ -509,7 +509,7 @@ def process_university_urls(args):
         if name_matches:
             best_match = name_matches[0]
             logger.info(
-                f"✓ NAME MATCH FOUND: {university_name} -> {best_match['Scraped_Name']} in {best_match['Scraped_Location']}"
+                f"NAME MATCH FOUND: {university_name} -> {best_match['Scraped_Name']} in {best_match['Scraped_Location']}"
             )
         else:
             # PASS 2: No matches found, try fuzzy matching
@@ -539,7 +539,7 @@ def process_university_urls(args):
                 # best_match["Overall_Match"] remains False
 
                 logger.info(
-                    f"✓ FUZZY MATCH FOUND (NOT NAME MATCH): {university_name} -> {best_match['Scraped_Name']} in {best_match['Scraped_Location']} "
+                    f"FUZZY MATCH FOUND (NOT NAME MATCH): {university_name} -> {best_match['Scraped_Name']} in {best_match['Scraped_Location']} "
                     f"(Name similarity: {best_match['Name_Similarity']}%)"
                 )
 
@@ -565,7 +565,7 @@ def process_university_urls(args):
                 "Error": "No matches found after processing all URLs",
             }
             save_matched_result(no_match_result)
-            logger.info(f"✗ NO MATCH: {university_name} - marked as processed")
+            logger.info(f"NO MATCH: {university_name} - marked as processed")
         else:
             # All URLs failed to scrape - still mark as processed to avoid retrying
             first_url = university_urls.iloc[0]  # Get first URL from the dataframe
@@ -584,7 +584,7 @@ def process_university_urls(args):
             }
             save_matched_result(failed_scrape_result)
             logger.info(
-                f"✗ ALL SCRAPES FAILED: {university_name} - marked as processed to avoid retrying"
+                f"ALL SCRAPES FAILED: {university_name} - marked as processed to avoid retrying"
             )
 
     return 0  # No matches found
@@ -744,7 +744,7 @@ def main():
         to_filter, delay_between_requests=args.delay, num_processes=args.workers
     )
 
-    print(f"\n✓ Validation completed! Total matches found: {matches_found}")
+    print(f"\nValidation completed! Total matches found: {matches_found}")
     logger.info("Peterson URL validation completed successfully")
 
 

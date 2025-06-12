@@ -80,7 +80,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler(LOGS_DIR / "georgia_data_download.log"),
+        logging.FileHandler(LOGS_DIR / "download_georgia_education_data.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )

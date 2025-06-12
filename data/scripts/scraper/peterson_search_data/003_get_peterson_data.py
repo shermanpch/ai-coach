@@ -4,7 +4,6 @@ import logging
 import os
 import subprocess
 import sys
-from datetime import datetime
 from pathlib import Path
 from typing import List
 
@@ -46,7 +45,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler(LOGS_DIR / "peterson_batch_scraper.log"),
+        logging.FileHandler(LOGS_DIR / "003_get_peterson_data.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )
@@ -162,7 +161,6 @@ def main():
     # Apply URL limits
     if args.max_urls:
         list_of_urls = list_of_urls[: args.max_urls]
-        to_scrape = to_scrape.head(args.max_urls)
         logger.info(f"Limited to {len(list_of_urls)} URLs (--max-urls)")
 
     # Split URLs into batches
@@ -188,7 +186,6 @@ def main():
 
     # Submit all batches
     batch_jobs = []
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     logger.info(f"Submitting {len(url_batches)} batches to Firecrawl...")
 
@@ -199,32 +196,7 @@ def main():
         job_info = submit_batch(app, batch_urls, i, json_config)
         batch_jobs.append(job_info)
 
-    # Create URL to batch mapping
-    url_to_batch = {}
-    for job in batch_jobs:
-        for url in job["urls"]:
-            url_to_batch[url] = {
-                "batch_id": job["job_id"],
-                "batch_number": job["batch_number"],
-            }
-
-    # Add batch information to the dataframe
-    to_scrape["batch_id"] = to_scrape["URL"].map(lambda x: url_to_batch[x]["batch_id"])
-    to_scrape["batch_number"] = to_scrape["URL"].map(
-        lambda x: url_to_batch[x]["batch_number"]
-    )
-
-    # Save the enhanced dataframe
-    output_file = (
-        PROJECT_ROOT
-        / "data"
-        / "cleaned"
-        / f"peterson_urls_with_batch_ids_{timestamp}.csv"
-    )
-    to_scrape.to_csv(output_file, index=False)
-
     logger.info("All batches submitted successfully!")
-    logger.info(f"Enhanced dataframe saved to: {output_file}")
 
     # Print summary
     logger.info("Batch Summary:")
@@ -237,9 +209,6 @@ def main():
     logger.info("1. Go to your Firecrawl dashboard")
     logger.info("2. Look for the batch job IDs listed above")
     logger.info("3. Download the ZIP files for each completed batch")
-    logger.info(
-        f"4. Use the CSV file to match downloaded data with original URLs: {output_file}"
-    )
 
 
 if __name__ == "__main__":
