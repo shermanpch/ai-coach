@@ -7,7 +7,7 @@ This project now uses **ruff** for linting and formatting Python code with **pre
 ### Ruff Configuration (`pyproject.toml`)
 - **Linting**: Pyflakes, pycodestyle, isort, flake8-bugbear, flake8-comprehensions, pyupgrade
 - **Formatting**: Black-compatible formatting with 88 character line length
-- **Target**: Python 3.8+ compatibility
+- **Target**: Python 3.10+ compatibility
 - **Auto-fix**: Enabled for all fixable rules
 
 ### Pre-commit Hooks (`.pre-commit-config.yaml`)

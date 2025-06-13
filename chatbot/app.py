@@ -250,14 +250,6 @@ async def main(message: cl.Message):
             output_content += f"| **Document ID** | {document_id} |\n"
             output_content += f"| **Source** | {source} |\n"
 
-            # Add metadata filter information
-            if hasattr(structured_query, "filter") and structured_query.filter:
-                output_content += (
-                    f"| **Applied Filter** | `{structured_query.filter}` |\n"
-                )
-            else:
-                output_content += "| **Applied Filter** | No specific filters |\n"
-
             # Add additional metadata if available
             if doc.metadata:
                 filtered_metadata = {

@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict, Optional
+from typing import Any
 
 from langchain.chains.query_constructor.base import (
     StructuredQueryOutputParser,
@@ -50,8 +50,8 @@ def create_self_query_retriever(
         base_url="https://openrouter.ai/api/v1",
         api_key=os.getenv("OPENROUTER_API_KEY"),
         default_headers={
-            "HTTP-Referer": "http://localhost:8000",  # Your app URL
-            "X-Title": "AI College Coach",  # Your app name
+            "HTTP-Referer": "http://localhost:8000",
+            "X-Title": "AI College Coach",
         },
     )
     prompt = get_query_constructor_prompt(
@@ -76,7 +76,7 @@ def query_vectorstore(
     vectorstore: Chroma,
     query_text: str,
     k: int = 5,
-    metadata_filter: Optional[Dict[str, Any]] = None,
+    metadata_filter: dict[str, Any] | None = None,
     with_scores: bool = False,
 ):
     """

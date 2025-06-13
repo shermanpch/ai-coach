@@ -2,10 +2,10 @@
 Admissions metadata extraction for Peterson university data.
 """
 
-from typing import Any, Dict
+from typing import Any
 
 
-def extract_admissions_metadata(json_record: Dict[str, Any]) -> Dict[str, Any]:
+def extract_admissions_metadata(json_record: dict[str, Any]) -> dict[str, Any]:
     """
     Extract admissions and selectivity metadata fields.
 
@@ -79,5 +79,16 @@ def extract_admissions_metadata(json_record: Dict[str, Any]) -> Dict[str, Any]:
                 metadata["act_composite_75"] = p75
             if avg is not None:
                 metadata["act_composite_avg"] = avg
+
+    # Calculate total average SAT score if both verbal and math averages are available
+    sat_verbal_avg_val = metadata.get("sat_verbal_avg")
+    sat_math_avg_val = metadata.get("sat_math_avg")
+
+    if sat_verbal_avg_val is not None and sat_math_avg_val is not None:
+        try:
+            metadata["sat_total_avg"] = int(sat_verbal_avg_val) + int(sat_math_avg_val)
+        except ValueError:
+            # Log or handle cases where conversion to int might fail, though unlikely if data is clean
+            pass
 
     return metadata

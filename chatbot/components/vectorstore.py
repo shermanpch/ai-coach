@@ -2,7 +2,6 @@ import os
 import platform
 import shutil
 from pathlib import Path
-from typing import List, Optional
 
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
@@ -28,7 +27,7 @@ def _fix_directory_permissions(directory_path: Path) -> None:
         directory_path: Path to the directory to fix permissions for
     """
     try:
-        # Check if we're on Windows
+        # Check for Windows OS
         is_windows = platform.system() == "Windows"
 
         if is_windows:
@@ -78,7 +77,7 @@ def _set_path_permissions(path: Path, is_directory: bool = True) -> None:
 
 
 def get_vectorstore(
-    documents: Optional[List[Document]] = None, recreate: bool = False
+    documents: list[Document] | None = None, recreate: bool = False
 ) -> Chroma:
     """
     Initializes or loads a ChromaDB vector store.
@@ -171,7 +170,7 @@ def get_vectorstore(
 
 
 def add_documents_to_vectorstore(
-    vectorstore: Chroma, documents: List[Document]
+    vectorstore: Chroma, documents: list[Document]
 ) -> None:
     """
     Add new documents to an existing vector store.
@@ -189,7 +188,7 @@ def add_documents_to_vectorstore(
     logger.info("Documents added and persisted successfully.")
 
 
-def delete_vectorstore(persist_dir: Optional[str] = None) -> bool:
+def delete_vectorstore(persist_dir: str | None = None) -> bool:
     """
     Delete the entire vector store directory.
 

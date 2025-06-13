@@ -6,6 +6,30 @@ build-backend = "setuptools.build_meta"
 name = "ai-college-coach"
 version = "0.1.0"
 description = "Project for CSE-6748"
+requires-python = ">=3.8"
+dependencies = [
+    "chainlit>=2.5.0",
+    "langchain>=0.3.0",
+    "langchain-openai>=0.3.0",
+    "langchain-chroma>=0.2.0",
+    "langchain-community>=0.3.0",
+    "langchain-huggingface>=0.3.0",
+    "chromadb>=1.0.0",
+    "openai>=1.0.0",
+    "python-dotenv>=1.0.0",
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "ragas>=0.1.0",
+    "datasets>=2.0.0",
+    "lark>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit>=4.2.0",
+    "ruff>=0.11.0",
+    "jupyter>=1.0.0",
+]
 
 [tool.setuptools]
 # This tells setuptools that your packages are directly in the root
@@ -58,8 +82,8 @@ extend-include = ["*.ipynb"]
 line-length = 88
 indent-width = 4
 
-# Assume Python 3.8+
-target-version = "py38"
+# Assume Python 3.10+
+target-version = "py310"
 
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`) codes by default.

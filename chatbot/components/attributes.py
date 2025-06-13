@@ -82,6 +82,11 @@ PETERSON_METADATA_FIELDS = [
         type="integer",
         description="Average SAT Math score",
     ),
+    AttributeInfo(
+        name="sat_total_avg",
+        type="integer",
+        description="Average total SAT score (sum of verbal and math average scores)",
+    ),
     # ACT Score Ranges (71%+ coverage)
     AttributeInfo(
         name="act_composite_25",

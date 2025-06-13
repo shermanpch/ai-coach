@@ -3,16 +3,22 @@
 # =============================================================================
 
 # Project-specific folders
-logs/
 etc/
-models/
+todo.md
+
 # Ignore everything in data/ except scripts/
 data/*
 !data/scripts/
-# !data/chatbot/
-ai-coach/
+
+# Catboost
+models/
 catboost_info/
+
+# Chroma DB
 chroma-peterson/
+
+# Chainlit file uploads
+.files/
 
 # EDA files
 eda/reports_internal/**/*.html
