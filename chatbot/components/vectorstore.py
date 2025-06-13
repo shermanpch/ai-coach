@@ -1,8 +1,5 @@
-import logging
 import os
 import shutil
-import subprocess
-import sys
 from pathlib import Path
 from typing import List, Optional
 
@@ -11,45 +8,14 @@ from langchain_core.documents import Document
 from langchain_huggingface import HuggingFaceEmbeddings
 
 from chatbot import config
+from projectutils.env import setup_project_environment
+from projectutils.logger import setup_logger
 
+# Call setup at the module level
+PROJECT_ROOT, _ = setup_project_environment()
 
-def get_git_root():
-    """Get the root directory of the git repository"""
-    try:
-        git_root = (
-            subprocess.check_output(
-                ["git", "rev-parse", "--show-toplevel"], stderr=subprocess.DEVNULL
-            )
-            .strip()
-            .decode("utf-8")
-        )
-        return Path(git_root)
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return None
-
-
-# Get the project root using git
-PROJECT_ROOT = get_git_root()
-if PROJECT_ROOT is None:
-    raise RuntimeError("Not in a git repository or git not found")
-
-LOGS_DIR = PROJECT_ROOT / "logs"
-LOGS_DIR.mkdir(exist_ok=True)
-
-# Set up logging
-script_name = os.path.splitext(os.path.basename(__file__))[0]
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler(LOGS_DIR / f"{script_name}.log"),
-        logging.StreamHandler(sys.stdout),
-    ],
-)
-logger = logging.getLogger(__name__)
-
-# Change to project root
-os.chdir(PROJECT_ROOT)
+# Set up logging using the new utility
+logger = setup_logger(__file__)
 
 
 def get_vectorstore(

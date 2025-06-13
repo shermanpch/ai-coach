@@ -8,55 +8,25 @@ Uses multiprocessing for parallelization to speed up the process.
 """
 
 import argparse
-import logging
 import multiprocessing as mp
 import os
-import subprocess
-import sys
 import time
 from pathlib import Path
 
 import pandas as pd
 from ydata_profiling import ProfileReport
 
+from projectutils.env import setup_project_environment
+from projectutils.logger import setup_logger
 
-def get_git_root():
-    """Get the root directory of the git repository"""
-    try:
-        git_root_bytes = subprocess.check_output(
-            ["git", "rev-parse", "--show-toplevel"], stderr=subprocess.DEVNULL
-        )
-        git_root_str = git_root_bytes.strip().decode("utf-8")
-        return Path(git_root_str)
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return None
+# Call setup at the module level
+PROJECT_ROOT, _ = setup_project_environment()
 
-
-PROJECT_ROOT = get_git_root()
-if PROJECT_ROOT is None:
-    print(
-        "CRITICAL: Error: Not in a git repository or git not found. Cannot determine project root.",
-        file=sys.stderr,
-    )
-    sys.exit(1)
-
-LOGS_DIR = PROJECT_ROOT / "logs"
 DATA_DIR = PROJECT_ROOT / "data"
 EDA_DIR = PROJECT_ROOT / "eda"
 
-# Ensure logs directory exists
-LOGS_DIR.mkdir(exist_ok=True)
-
-# Set up logging with absolute path
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler(LOGS_DIR / "generate_profiling_reports.log"),
-        logging.StreamHandler(sys.stdout),
-    ],
-)
-logger = logging.getLogger(__name__)
+# Set up logging using the new utility
+logger = setup_logger(__file__)
 
 
 def process_csv_file(args_tuple):
