@@ -1,4 +1,5 @@
 import os
+import platform
 import shutil
 from pathlib import Path
 from typing import List, Optional
@@ -16,6 +17,64 @@ PROJECT_ROOT, _ = setup_project_environment()
 
 # Set up logging using the new utility
 logger = setup_logger(__file__)
+
+
+def _fix_directory_permissions(directory_path: Path) -> None:
+    """
+    Fix permissions for ChromaDB directory and its contents.
+    Cross-platform compatible - handles both Unix and Windows systems.
+
+    Args:
+        directory_path: Path to the directory to fix permissions for
+    """
+    try:
+        # Check if we're on Windows
+        is_windows = platform.system() == "Windows"
+
+        if is_windows:
+            # On Windows, skip chmod operations as the directory is accessible by default
+            # Windows handles permissions differently through ACLs
+            logger.info(
+                f"Windows detected - skipping chmod operations for {directory_path}"
+            )
+            return
+
+        # Unix/Linux/macOS permission handling
+        directory_path.chmod(0o755)
+
+        # Fix permissions for all files and subdirectories
+        for item in directory_path.rglob("*"):
+            if item.is_dir():
+                item.chmod(0o755)
+            else:
+                item.chmod(0o644)
+
+        logger.info(f"Fixed permissions for {directory_path}")
+    except Exception as e:
+        logger.warning(f"Could not fix permissions for {directory_path}: {e}")
+        # Don't raise the exception - permission issues shouldn't break the app
+
+
+def _set_path_permissions(path: Path, is_directory: bool = True) -> None:
+    """
+    Set permissions for a path in a cross-platform way.
+
+    Args:
+        path: Path to set permissions for
+        is_directory: Whether the path is a directory
+    """
+    try:
+        # Skip chmod on Windows
+        if platform.system() == "Windows":
+            return
+
+        # Set Unix permissions
+        if is_directory:
+            path.chmod(0o755)
+        else:
+            path.chmod(0o644)
+    except Exception as e:
+        logger.warning(f"Could not set permissions for {path}: {e}")
 
 
 def get_vectorstore(
@@ -36,8 +95,30 @@ def get_vectorstore(
         },  # Normalize for better similarity search
     )
 
+    # Ensure the persist directory exists with proper permissions
+    persist_path = Path(config.CHROMA_PERSIST_DIR)
+    if not persist_path.exists():
+        try:
+            persist_path.mkdir(parents=True, exist_ok=True)
+            # Set proper permissions (cross-platform compatible)
+            _set_path_permissions(persist_path, is_directory=True)
+            logger.info(f"Created ChromaDB directory: {config.CHROMA_PERSIST_DIR}")
+        except Exception as e:
+            logger.error(f"Failed to create ChromaDB directory: {e}")
+            raise
+
     # Check if DB needs to be recreated or if it exists
     db_exists = os.path.exists(config.CHROMA_PERSIST_DIR)
+
+    # Fix permissions if directory exists but has permission issues
+    if db_exists:
+        try:
+            # Try to fix permissions on the directory and its contents
+            _fix_directory_permissions(persist_path)
+        except Exception as e:
+            logger.warning(
+                f"Could not fix permissions for {config.CHROMA_PERSIST_DIR}: {e}"
+            )
 
     if recreate and db_exists:
         # Delete existing database directory to recreate
@@ -165,3 +246,23 @@ def get_vectorstore_stats(vectorstore: Chroma) -> dict:
 def get_vectorstore_path() -> Path:
     """Return the absolute path where the Chroma store is persisted."""
     return PROJECT_ROOT / config.CHROMA_PERSIST_DIR
+
+
+def fix_vectorstore_permissions() -> bool:
+    """
+    Fix permissions for the vectorstore directory.
+
+    Returns:
+        bool: True if permissions were fixed successfully, False otherwise
+    """
+    try:
+        vectorstore_path = get_vectorstore_path()
+        if vectorstore_path.exists():
+            _fix_directory_permissions(vectorstore_path)
+            return True
+        else:
+            logger.info("Vectorstore directory does not exist, nothing to fix.")
+            return True
+    except Exception as e:
+        logger.error(f"Failed to fix vectorstore permissions: {e}")
+        return False

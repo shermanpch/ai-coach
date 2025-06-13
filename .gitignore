@@ -9,6 +9,7 @@ models/
 # Ignore everything in data/ except scripts/
 data/*
 !data/scripts/
+# !data/chatbot/
 ai-coach/
 catboost_info/
 chroma-peterson/

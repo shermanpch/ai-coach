@@ -184,7 +184,24 @@ def load_peterson_json_file(file_path: Path) -> Dict:
 
         # Extract the json key if it exists
         if "json" in data:
-            return data["json"]
+            university_data = data["json"]
+
+            # Extract the URL from metadata if available
+            source_url = None
+            if "metadata" in data and "sourceURL" in data["metadata"]:
+                source_url = data["metadata"]["sourceURL"]
+
+            # Create a new ordered dictionary with URL as the first field
+            if source_url:
+                ordered_data = {"url": source_url}
+                # Add all other fields from university_data
+                for key, value in university_data.items():
+                    ordered_data[key] = value
+
+                return ordered_data
+            else:
+                logger.warning(f"No sourceURL found in metadata for {file_path.name}")
+                return university_data
         else:
             logger.warning(f"No 'json' key found in {file_path.name}")
             return None

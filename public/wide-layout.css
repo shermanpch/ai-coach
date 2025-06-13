@@ -1,0 +1,140 @@
+Custom CSS for wide screen optimization
+
+/* Increase max width for wide layouts */
+.cl-chat-container {
+    max-width: 1800px !important;
+}
+
+/* Optimize message container for wide screens */
+.cl-message-container {
+    max-width: 1600px !important;
+    margin: 0 auto;
+}
+
+/* Better spacing for messages */
+.cl-message {
+    margin-bottom: 2rem !important;
+    padding: 1.5rem !important;
+}
+
+/* Optimize code blocks for wide screens */
+.cl-message pre {
+    max-width: 100% !important;
+    overflow-x: auto;
+}
+
+/* Better table styling for metadata */
+.cl-message table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+}
+
+.cl-message table th,
+.cl-message table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.cl-message table th {
+    background-color: #f9fafb;
+    font-weight: 600;
+}
+
+/* Optimize input area for wide screens */
+.cl-input-container {
+    max-width: 1600px !important;
+    margin: 0 auto;
+}
+
+/* Better sidebar width for wide screens */
+.cl-sidebar {
+    min-width: 400px !important;
+}
+
+/* Optimize header for wide screens */
+.cl-header {
+    padding: 0 2rem !important;
+}
+
+/* Better spacing for wide content */
+@media (min-width: 1200px) {
+    .cl-chat-container {
+        padding: 0 3rem !important;
+    }
+
+    .cl-message-container {
+        padding: 0 2rem !important;
+    }
+}
+
+/* Optimize for ultra-wide screens */
+@media (min-width: 1600px) {
+    .cl-chat-container {
+        max-width: 2000px !important;
+        padding: 0 4rem !important;
+    }
+
+    .cl-message-container {
+        max-width: 1800px !important;
+    }
+}
+
+/* Add support for super ultra-wide screens */
+@media (min-width: 2000px) {
+    .cl-chat-container {
+        max-width: 2400px !important;
+        padding: 0 6rem !important;
+    }
+
+    .cl-message-container {
+        max-width: 2200px !important;
+    }
+
+    .cl-input-container {
+        max-width: 2200px !important;
+    }
+
+    .cl-sidebar {
+        min-width: 500px !important;
+    }
+}
+
+/* Better markdown rendering for wide screens */
+.cl-message h1 {
+    font-size: 2rem !important;
+    margin-bottom: 1rem !important;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 0.5rem;
+}
+
+.cl-message h2 {
+    font-size: 1.5rem !important;
+    margin: 1.5rem 0 1rem 0 !important;
+    color: #374151;
+}
+
+.cl-message h3 {
+    font-size: 1.25rem !important;
+    margin: 1rem 0 0.5rem 0 !important;
+    color: #4b5563;
+}
+
+/* Better horizontal rule styling */
+.cl-message hr {
+    margin: 2rem 0 !important;
+    border: none !important;
+    border-top: 2px solid #e5e7eb !important;
+}
+
+/* Optimize lists for better readability */
+.cl-message ul, .cl-message ol {
+    margin: 1rem 0 !important;
+    padding-left: 2rem !important;
+}
+
+.cl-message li {
+    margin-bottom: 0.5rem !important;
+    line-height: 1.6 !important;
+}

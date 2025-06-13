@@ -1,10 +1,19 @@
 import os
 from typing import Any, Dict, Optional
 
+from langchain.chains.query_constructor.base import (
+    StructuredQueryOutputParser,
+    get_query_constructor_prompt,
+)
+from langchain.retrievers.self_query.base import SelfQueryRetriever
 from langchain_chroma import Chroma
+from langchain_community.query_constructors.chroma import ChromaTranslator
+from langchain_openai import ChatOpenAI
 
 from projectutils.env import setup_project_environment
 from projectutils.logger import setup_logger
+
+from .attributes import PETERSON_METADATA_FIELDS
 
 # Call setup at the module level
 PROJECT_ROOT, _ = setup_project_environment()
@@ -14,6 +23,53 @@ logger = setup_logger(__file__)
 
 # Change to project root
 os.chdir(PROJECT_ROOT)
+
+
+def create_self_query_retriever(
+    vectorstore: Chroma, llm_model: str = "openai/gpt-4o-mini", k: int = 12
+) -> SelfQueryRetriever:
+    """
+    Create a SelfQueryRetriever for Peterson university data.
+
+    This retriever can understand natural language queries and automatically
+    construct appropriate metadata filters based on the comprehensive Peterson
+    university dataset structure.
+
+    Args:
+        vectorstore: The Chroma vector store instance
+        llm_model: The model to use for query construction (OpenRouter format)
+        k: Number of documents to retrieve
+
+    Returns:
+        Configured SelfQueryRetriever instance
+    """
+    # Build query-constructor chain using OpenRouter
+    llm = ChatOpenAI(
+        model=llm_model,
+        temperature=0,
+        base_url="https://openrouter.ai/api/v1",
+        api_key=os.getenv("OPENROUTER_API_KEY"),
+        default_headers={
+            "HTTP-Referer": "http://localhost:8000",  # Your app URL
+            "X-Title": "AI College Coach",  # Your app name
+        },
+    )
+    prompt = get_query_constructor_prompt(
+        "Peterson's Guide university profiles with comprehensive data on admissions, costs, academics, athletics, and campus life",
+        PETERSON_METADATA_FIELDS,
+    )
+    parser = StructuredQueryOutputParser.from_components()
+    query_constructor = prompt | llm | parser  # LCEL pipeline
+
+    # Create SelfQueryRetriever
+    retriever = SelfQueryRetriever(
+        query_constructor=query_constructor,
+        vectorstore=vectorstore,
+        structured_query_translator=ChromaTranslator(),
+        search_kwargs={"k": k},
+    )
+
+    return retriever
 
 
 def query_vectorstore(

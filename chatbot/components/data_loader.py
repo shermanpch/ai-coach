@@ -7,7 +7,6 @@ from typing import List
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from langchain_core.documents import Document
 
-# Original project imports should now work directly because of pip install -e .
 from chatbot import config
 from chatbot.utils.metadata_extractor import extract_metadata_from_json
 from chatbot.utils.peterson_converter import lookup_university_by_id
