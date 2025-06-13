@@ -58,8 +58,8 @@ python data/scripts/scraper/peterson_search_data/003_get_peterson_data.py --num-
 # 4. Re-scrape failed URLs (if needed)
 python data/scripts/scraper/peterson_search_data/004_rescrape_failed_urls.py
 
-# 5. Scrape course information
-python data/scripts/scraper/peterson_search_data/005_scrape_courses.py
+# 5. Scrape course information using BeautifulSoup
+python data/scripts/scraper/peterson_search_data/005_scrape_courses_bs.py
 
 # 6. Combine course data
 python data/scripts/scraper/peterson_search_data/006_combine_peterson_courses.py

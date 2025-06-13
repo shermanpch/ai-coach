@@ -1,32 +1,27 @@
+#!/usr/bin/env python3
+"""
+Script to scrape Majors & Degrees section from Peterson's web pages using BeautifulSoup
+and output them in JSON format similar to the existing data structure.
+"""
+
 import argparse
 import json
 import logging
 import os
+import re
 import subprocess
 import sys
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 import pandas as pd
+import requests
+from bs4 import BeautifulSoup
 from dotenv import load_dotenv
-from firecrawl import FirecrawlApp, JsonConfig
-from pydantic import BaseModel, Field
-
-from models import MajorCategory
 
 load_dotenv()
-
-
-class UniversityCoursesSchema(BaseModel):
-    """Simplified schema for extracting only university name and majors/degrees"""
-
-    university_name: str = Field(
-        ...,
-        description="Name of the university, e.g. 'Harvard University', 'Ohio University', 'Georgia Institute of Technology'",
-    )
-    majors_and_degrees: List[MajorCategory]
 
 
 def get_git_root():
@@ -78,97 +73,173 @@ def thread_safe_log(level, message):
         logger.log(level, message)
 
 
-def scrape_university_courses(
-    app: FirecrawlApp,
-    url: str,
-    university_name: str = None,
-) -> Dict[str, Any]:
-    """Scrape a single university URL using actions to handle dynamic content with fallback for missing buttons"""
+def extract_university_name(soup):
+    """Extract university name from the HTML"""
+    # Try to find the university name in the h1 tag
+    h1_tag = soup.find("h1", class_="mb-1 pr-3 pl-0 h3 text-white")
+    if h1_tag:
+        return h1_tag.get_text(strip=True)
+
+    # Fallback to title tag
+    title_tag = soup.find("title")
+    if title_tag:
+        title_text = title_tag.get_text(strip=True)
+        # Remove " - Tuition and Acceptance Rate" suffix if present
+        return re.sub(r"\s*-\s*Tuition and Acceptance Rate.*$", "", title_text)
+
+    return "Unknown University"
+
+
+def extract_majors_and_degrees(soup):
+    """Extract majors and degrees from the HTML structure"""
+    majors_section = soup.find("section", id="degrees")
+    if not majors_section:
+        return []
+
+    table = majors_section.find("table")
+    if not table:
+        return []
+
+    categories = []
+    current_category = None
+
+    tbody = table.find("tbody")
+    if not tbody:
+        return []
+
+    rows = tbody.find_all("tr")
+
+    for row in rows:
+        th = row.find("th")
+        if not th:
+            continue
+
+        # Check if this is a top-level category
+        if "top-level" in th.get("class", []):
+            category_name = th.get_text(strip=True)
+            current_category = {"category": category_name, "programs": []}
+            categories.append(current_category)
+        else:
+            # This is a program under the current category
+            if current_category is None:
+                continue
+
+            program_name = th.get_text(strip=True)
+            tds = row.find_all("td")
+
+            # Check for Associate degree (first td after th)
+            offers_associate = False
+            offers_bachelors = False
+
+            if len(tds) >= 2:
+                # Check Associate column (first td)
+                associate_td = tds[0]
+                if associate_td.find("img", alt="Checkmark"):
+                    offers_associate = True
+
+                # Check Bachelors column (second td)
+                bachelors_td = tds[1]
+                if bachelors_td.find("img", alt="Checkmark"):
+                    offers_bachelors = True
+
+            program = {
+                "name": program_name,
+                "offers_associate": offers_associate,
+                "offers_bachelors": offers_bachelors,
+            }
+
+            current_category["programs"].append(program)
+
+    return categories
+
+
+def scrape_university_courses(url: str, university_name: str = None) -> Dict[str, Any]:
+    """Scrape a single university URL using requests and BeautifulSoup"""
     try:
         thread_safe_log(logging.INFO, f"Scraping: {url}")
 
-        # Use scrape endpoint with actions to click "See More" button and JSON extraction
-        json_config = JsonConfig(schema=UniversityCoursesSchema.model_json_schema())
-
-        # First try with "See More" button click
-        try:
-            scrape_result = app.scrape_url(
-                url,
-                formats=["json"],
-                json_options=json_config,
-                only_main_content=True,
-                actions=[
-                    {"type": "wait", "milliseconds": 3000},
-                    {"type": "click", "selector": "#rm-more_1"},
-                    {"type": "wait", "milliseconds": 1000},
-                    {"type": "scrape"},
-                ],
-                timeout=80000,
-            )
-
-            if scrape_result.success:
-                thread_safe_log(
-                    logging.INFO, f"Successfully scraped with 'See More' click: {url}"
-                )
-                json_content = scrape_result.json if scrape_result.json else {}
-                metadata = scrape_result.metadata if scrape_result.metadata else {}
-                return {
-                    "metadata": metadata,
-                    "json": json_content,
-                }
-        except Exception as e:
-            thread_safe_log(
-                logging.WARNING,
-                f"Failed to scrape with 'See More' click for {url}: {str(e)}",
-            )
-
-        # Fallback: scrape without clicking the button
-        thread_safe_log(
-            logging.INFO,
-            f"Attempting fallback scrape without 'See More' button for: {url}",
-        )
-        scrape_result = app.scrape_url(
-            url,
-            formats=["json"],
-            json_options=json_config,
-            only_main_content=True,
-            actions=[
-                {"type": "wait", "milliseconds": 3000},
-                {"type": "scrape"},
-            ],
-            timeout=80000,
-        )
-
-        if not scrape_result.success:
-            thread_safe_log(logging.ERROR, f"Failed to scrape {url}: {scrape_result}")
-            return {
-                "metadata": {"error": "Scrape failed", "sourceURL": url},
-                "json": None,
-            }
-
-        # Access data directly from ScrapeResponse attributes
-        json_content = scrape_result.json if scrape_result.json else {}
-        metadata = scrape_result.metadata if scrape_result.metadata else {}
-
-        thread_safe_log(
-            logging.INFO, f"Successfully scraped with fallback method: {url}"
-        )
-        # Return in the same format as existing Peterson data: {metadata: ..., json: ...}
-        return {
-            "metadata": metadata,
-            "json": json_content,
+        # Set up headers to mimic a real browser
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.5",
+            "Accept-Encoding": "gzip, deflate",
+            "Connection": "keep-alive",
+            "Upgrade-Insecure-Requests": "1",
         }
 
+        # Make the request
+        response = requests.get(url, headers=headers, timeout=30)
+        response.raise_for_status()
+
+        # Parse the HTML
+        soup = BeautifulSoup(response.content, "html.parser")
+
+        # Extract university name
+        extracted_university_name = extract_university_name(soup)
+
+        # Extract majors and degrees
+        majors_and_degrees = extract_majors_and_degrees(soup)
+
+        if not majors_and_degrees:
+            thread_safe_log(logging.WARNING, f"No majors and degrees found for: {url}")
+            majors_and_degrees = []  # Return empty list instead of failing
+
+        # Create the JSON structure similar to existing Peterson data
+        json_data = {
+            "university_name": extracted_university_name,
+            "majors_and_degrees": majors_and_degrees,
+        }
+
+        thread_safe_log(
+            logging.INFO,
+            f"Successfully scraped {extracted_university_name} with {len(majors_and_degrees)} categories",
+        )
+
+        # Return in the same format as existing Peterson data: {metadata: ..., json: ...}
+        return {
+            "metadata": {
+                "sourceURL": url,
+                "statusCode": response.status_code,
+                "contentType": response.headers.get("content-type", ""),
+            },
+            "json": json_data,
+        }
+
+    except requests.exceptions.RequestException as e:
+        thread_safe_log(logging.ERROR, f"Request error for {url}: {str(e)}")
+        # Return empty majors and degrees instead of failing
+        return {
+            "metadata": {
+                "error": f"Request error: {str(e)}",
+                "sourceURL": url,
+                "statusCode": 0,
+                "contentType": "",
+            },
+            "json": {
+                "university_name": university_name or "Unknown University",
+                "majors_and_degrees": [],
+            },
+        }
     except Exception as e:
         thread_safe_log(logging.ERROR, f"Error scraping {url}: {str(e)}")
+        # Return empty majors and degrees instead of failing
         return {
-            "metadata": {"error": str(e), "sourceURL": url},
-            "json": None,
+            "metadata": {
+                "error": str(e),
+                "sourceURL": url,
+                "statusCode": 0,
+                "contentType": "",
+            },
+            "json": {
+                "university_name": university_name or "Unknown University",
+                "majors_and_degrees": [],
+            },
         }
 
 
 def process_url_with_retries(
-    app: FirecrawlApp, url_info: dict, max_retries: int, output_dir: Path
+    url_info: dict, max_retries: int, output_dir: Path
 ) -> dict:
     """Process a single URL with retry logic and file saving"""
     url = url_info["url"]
@@ -186,16 +257,16 @@ def process_url_with_retries(
 
         # Scrape the URL
         result = scrape_university_courses(
-            app=app,
             url=url,
             university_name=university_name,
         )
 
-        # Check if scraping was successful (has json data)
+        # Check if scraping was successful (has json data and no error in metadata)
         if (
             result["json"] is not None
             and isinstance(result["json"], dict)
             and result["json"]
+            and "error" not in result["metadata"]
         ):
             thread_safe_log(logging.INFO, f"Successfully scraped: {university_name}")
 
@@ -208,7 +279,7 @@ def process_url_with_retries(
             )
             individual_file = output_dir / f"{url_path}.json"
 
-            with open(individual_file, "w") as f:
+            with open(individual_file, "w", encoding="utf-8") as f:
                 json.dump(result, f, indent=2, ensure_ascii=False)
 
             success = True
@@ -239,7 +310,7 @@ def process_url_with_retries(
 def parse_arguments():
     """Parse command line arguments"""
     parser = argparse.ArgumentParser(
-        description="Scrape Peterson URLs using Firecrawl scrape endpoint with parallel processing",
+        description="Scrape Peterson URLs using BeautifulSoup with parallel processing",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
@@ -266,8 +337,8 @@ def parse_arguments():
     parser.add_argument(
         "--max-workers",
         type=int,
-        default=2,
-        help="Maximum number of parallel workers (browsers)",
+        default=4,
+        help="Maximum number of parallel workers",
     )
 
     return parser.parse_args()
@@ -276,7 +347,9 @@ def parse_arguments():
 def main():
     args = parse_arguments()
 
-    logger.info("Starting Peterson courses scraping with parallel processing...")
+    logger.info(
+        "Starting Peterson courses scraping with BeautifulSoup and parallel processing..."
+    )
     logger.info(
         f"Configuration: max_urls={args.max_urls}, max_retries={args.max_retries}, max_workers={args.max_workers}"
     )
@@ -331,11 +404,11 @@ def main():
         if output_dir.exists():
             for file_path in output_dir.glob("*.json"):
                 try:
-                    with open(file_path) as f:
+                    with open(file_path, encoding="utf-8") as f:
                         data = json.load(f)
                     # Check if it's a successful scrape (has json content)
                     if data.get("json") is not None:
-                        # Get the original URL from metadata instead of reconstructing from filename
+                        # Get the original URL from metadata
                         metadata = data.get("metadata", {})
                         source_url = metadata.get("sourceURL")
                         if source_url:
@@ -374,12 +447,6 @@ def main():
         )
         return
 
-    # Initialize the FirecrawlApp
-    api_key = os.getenv("FIRECRAWL_API_KEY")
-    if not api_key:
-        logger.error("FIRECRAWL_API_KEY environment variable not set")
-        sys.exit(1)
-
     # Process URLs with parallel workers
     successful_scrapes = 0
     failed_scrapes = 0
@@ -391,21 +458,15 @@ def main():
 
     # Use ThreadPoolExecutor for parallel processing
     with ThreadPoolExecutor(max_workers=args.max_workers) as executor:
-        # Create a FirecrawlApp instance for each worker thread
-        def create_worker_task(url_info):
-            # Each thread gets its own FirecrawlApp instance
-            worker_app = FirecrawlApp(api_key=api_key)
-            return executor.submit(
+        # Submit all tasks
+        future_to_url = {
+            executor.submit(
                 process_url_with_retries,
-                worker_app,
                 url_info,
                 args.max_retries,
                 output_dir,
-            )
-
-        # Submit all tasks
-        future_to_url = {
-            create_worker_task(url_info): url_info for url_info in urls_to_process
+            ): url_info
+            for url_info in urls_to_process
         }
 
         # Process completed tasks

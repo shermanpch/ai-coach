@@ -30,7 +30,7 @@ Complete pipeline for scraping and processing comprehensive university data from
 - `002_get_correct_peterson_url.py` - Validates and matches Peterson URLs against university datasets
 - `003_get_peterson_data.py` - Batch scrapes university data using Firecrawl API
 - `004_rescrape_failed_urls.py` - Re-scrapes URLs that failed initial processing
-- `005_scrape_courses.py` - Scrapes course information for universities
+- `005_scrape_courses_bs.py` - Scrapes course information for universities using BeautifulSoup
 - `006_combine_peterson_courses.py` - Combines course data from multiple sources
 - `007_clean_peterson_data.py` - Extracts and combines JSON data from scraped files
 - `models.py` - Pydantic models defining the data structure for university information
@@ -48,6 +48,7 @@ Complete pipeline for scraping and processing comprehensive university data from
   - 👨‍🏫 Faculty information and statistics
 - 🔄 **Error Recovery**: Automatic identification and re-scraping of failed URLs
 - 🧹 **Data Cleaning**: Automated extraction and combination of university data
+- 🌐 **Multiple Scraping Methods**: BeautifulSoup-based scraping for reliable course data extraction
 - 📝 **Comprehensive Logging**: Detailed progress tracking and error reporting
 
 ## 🚀 Installation & Setup
@@ -118,7 +119,7 @@ python data/scripts/scraper/peterson_search_data/004_rescrape_failed_urls.py
 
 **5. Scrape Course Information:**
 ```bash
-python data/scripts/scraper/peterson_search_data/005_scrape_courses.py
+python data/scripts/scraper/peterson_search_data/005_scrape_courses_bs.py
 ```
 
 **6. Combine Course Data:**
@@ -173,8 +174,10 @@ data/
 │   └── peterson_data.json                      # Final cleaned university dataset
 
 └── external/
-    └── peterson_data/
-        └── *.json                              # Raw scraped university data files
+    ├── peterson_data/
+    │   └── *.json                              # Raw scraped university data files
+    └── peterson_courses_data/
+        └── *.json                              # Course data scraped using BeautifulSoup
 ```
 
 ## 📊 Available Data Categories (Georgia)
